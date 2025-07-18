@@ -36,9 +36,11 @@ except ImportError:
     print("⚠️  faster-whisper not available")
 
 try:
-        PYANNOTE_AVAILABLE = True
+    import pyannote.audio
+    PYANNOTE_AVAILABLE = True
     print("✅ pyannote.audio available")
 except ImportError:
+    PYANNOTE_AVAILABLE = False
     print("⚠️  pyannote.audio not available")
 
 try:
