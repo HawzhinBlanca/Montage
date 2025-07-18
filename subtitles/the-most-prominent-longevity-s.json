@@ -1,0 +1,135 @@
+{
+  "clip_info": {
+    "slug": "the-most-prominent-longevity-s",
+    "start_ms": 24820,
+    "end_ms": 34640,
+    "duration_ms": 9820,
+    "word_count": 16,
+    "average_confidence": 0.8152843924860159
+  },
+  "subtitles": [
+    {
+      "index": 1,
+      "start_ms": 0,
+      "end_ms": 3120,
+      "text": "the most prominent longevity scientist on",
+      "confidence": 0.8242754675447941,
+      "words": [
+        {
+          "word": " the",
+          "start": 0,
+          "end": 0.64,
+          "confidence": 0.07829167693853378
+        },
+        {
+          "word": " most",
+          "start": 0.64,
+          "end": 0.94,
+          "confidence": 0.9873483180999756
+        },
+        {
+          "word": " prominent",
+          "start": 0.94,
+          "end": 1.44,
+          "confidence": 0.9984373450279236
+        },
+        {
+          "word": " longevity",
+          "start": 1.44,
+          "end": 1.94,
+          "confidence": 0.9697394371032715
+        },
+        {
+          "word": " scientist",
+          "start": 1.94,
+          "end": 2.62,
+          "confidence": 0.936060905456543
+        },
+        {
+          "word": " on",
+          "start": 2.62,
+          "end": 3.12,
+          "confidence": 0.9757751226425171
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "start_ms": 3220,
+      "end_ms": 7980,
+      "text": "the planet. My co -host is Honorable",
+      "confidence": 0.922208160161972,
+      "words": [
+        {
+          "word": " the",
+          "start": 3.12,
+          "end": 3.24,
+          "confidence": 0.9887856245040894
+        },
+        {
+          "word": " planet.",
+          "start": 3.24,
+          "end": 3.66,
+          "confidence": 0.9970830082893372
+        },
+        {
+          "word": " My",
+          "start": 5.0,
+          "end": 5.78,
+          "confidence": 0.9597328305244446
+        },
+        {
+          "word": " co",
+          "start": 5.78,
+          "end": 6.06,
+          "confidence": 0.977627158164978
+        },
+        {
+          "word": "-host",
+          "start": 6.06,
+          "end": 6.6,
+          "confidence": 0.9666195809841156
+        },
+        {
+          "word": " is",
+          "start": 6.6,
+          "end": 7.08,
+          "confidence": 0.9351407289505005
+        },
+        {
+          "word": " Honorable",
+          "start": 7.08,
+          "end": 7.88,
+          "confidence": 0.6304681897163391
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "start_ms": 8080,
+      "end_ms": 10020,
+      "text": "Professor Greg Hunt,",
+      "confidence": 0.6993695497512817,
+      "words": [
+        {
+          "word": " Professor",
+          "start": 7.88,
+          "end": 8.5,
+          "confidence": 0.8552589416503906
+        },
+        {
+          "word": " Greg",
+          "start": 8.5,
+          "end": 9.48,
+          "confidence": 0.5813084244728088
+        },
+        {
+          "word": " Hunt,",
+          "start": 9.48,
+          "end": 9.82,
+          "confidence": 0.6615412831306458
+        }
+      ]
+    }
+  ]
+}

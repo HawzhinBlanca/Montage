@@ -1,0 +1,248 @@
+{
+  "project_name": "montage_project_1752848789",
+  "timeline_name": "montage_timeline_1752848789",
+  "video_path": "test_video.mp4",
+  "highlights": [
+    {
+      "slug": "welcome-to-the-program-we-are",
+      "start_ms": 8799,
+      "end_ms": 16820,
+      "text": "Welcome to the program. We are very, very excited to have Professor David Sinclair,",
+      "score": 5.645137320865285,
+      "breakdown": {
+        "complete_sentence": 2.0,
+        "keywords": 3.0,
+        "audio_rms": 0.6451373208652843
+      },
+      "confidence": 0.32256866043264215
+    },
+    {
+      "slug": "the-most-prominent-longevity-s",
+      "start_ms": 24820,
+      "end_ms": 34640,
+      "text": "the most prominent longevity scientist on the planet. My co-host is Honorable Professor Greg Hunt,",
+      "score": 5.406799797713757,
+      "breakdown": {
+        "complete_sentence": 2.0,
+        "keywords": 3.0,
+        "audio_rms": 0.4067997977137566
+      },
+      "confidence": 0.2033998988568783
+    },
+    {
+      "slug": "who-needs-no-introduction-unti",
+      "start_ms": 35020,
+      "end_ms": 41340,
+      "text": "who needs no introduction until recently Greg was the Federal Health Minister of Australia,",
+      "score": 5.406799797713757,
+      "breakdown": {
+        "complete_sentence": 2.0,
+        "keywords": 3.0,
+        "audio_rms": 0.4067997977137566
+      },
+      "confidence": 0.2033998988568783
+    },
+    {
+      "slug": "and-again-in-my-mind-probably",
+      "start_ms": 41760,
+      "end_ms": 45800,
+      "text": "and again, in my mind, probably the best health minister we've ever had.",
+      "score": 5.406799797713757,
+      "breakdown": {
+        "complete_sentence": 2.0,
+        "keywords": 3.0,
+        "audio_rms": 0.4067997977137566
+      },
+      "confidence": 0.2033998988568783
+    },
+    {
+      "slug": "a-well-renowned-geneticist-and",
+      "start_ms": 17620,
+      "end_ms": 24820,
+      "text": "a well-renowned geneticist, and certainly in my mind and most people's mind,",
+      "score": 3.645137320865284,
+      "breakdown": {
+        "complete_sentence": 0.0,
+        "keywords": 3.0,
+        "audio_rms": 0.6451373208652843
+      },
+      "confidence": 0.32256866043264215
+    }
+  ],
+  "subtitles": [],
+  "commands": [
+    {
+      "command_type": "import_media",
+      "parameters": {
+        "file_path": "test_video.mp4"
+      },
+      "timeline_position": 0,
+      "duration": 0,
+      "priority": 1,
+      "metadata": {
+        "description": "Import source video"
+      }
+    },
+    {
+      "command_type": "add_highlight_clip",
+      "parameters": {
+        "highlight": {
+          "slug": "welcome-to-the-program-we-are",
+          "start_ms": 8799,
+          "end_ms": 16820,
+          "text": "Welcome to the program. We are very, very excited to have Professor David Sinclair,",
+          "score": 5.645137320865285,
+          "breakdown": {
+            "complete_sentence": 2.0,
+            "keywords": 3.0,
+            "audio_rms": 0.6451373208652843
+          },
+          "confidence": 0.32256866043264215
+        },
+        "position": 0.0
+      },
+      "timeline_position": 0.0,
+      "duration": 8.021,
+      "priority": 2,
+      "metadata": {
+        "clip_index": 0,
+        "slug": "welcome-to-the-program-we-are"
+      }
+    },
+    {
+      "command_type": "add_highlight_clip",
+      "parameters": {
+        "highlight": {
+          "slug": "the-most-prominent-longevity-s",
+          "start_ms": 24820,
+          "end_ms": 34640,
+          "text": "the most prominent longevity scientist on the planet. My co-host is Honorable Professor Greg Hunt,",
+          "score": 5.406799797713757,
+          "breakdown": {
+            "complete_sentence": 2.0,
+            "keywords": 3.0,
+            "audio_rms": 0.4067997977137566
+          },
+          "confidence": 0.2033998988568783
+        },
+        "position": 10.0
+      },
+      "timeline_position": 10.0,
+      "duration": 9.82,
+      "priority": 2,
+      "metadata": {
+        "clip_index": 1,
+        "slug": "the-most-prominent-longevity-s"
+      }
+    },
+    {
+      "command_type": "add_highlight_clip",
+      "parameters": {
+        "highlight": {
+          "slug": "who-needs-no-introduction-unti",
+          "start_ms": 35020,
+          "end_ms": 41340,
+          "text": "who needs no introduction until recently Greg was the Federal Health Minister of Australia,",
+          "score": 5.406799797713757,
+          "breakdown": {
+            "complete_sentence": 2.0,
+            "keywords": 3.0,
+            "audio_rms": 0.4067997977137566
+          },
+          "confidence": 0.2033998988568783
+        },
+        "position": 20.0
+      },
+      "timeline_position": 20.0,
+      "duration": 6.32,
+      "priority": 2,
+      "metadata": {
+        "clip_index": 2,
+        "slug": "who-needs-no-introduction-unti"
+      }
+    },
+    {
+      "command_type": "add_highlight_clip",
+      "parameters": {
+        "highlight": {
+          "slug": "and-again-in-my-mind-probably",
+          "start_ms": 41760,
+          "end_ms": 45800,
+          "text": "and again, in my mind, probably the best health minister we've ever had.",
+          "score": 5.406799797713757,
+          "breakdown": {
+            "complete_sentence": 2.0,
+            "keywords": 3.0,
+            "audio_rms": 0.4067997977137566
+          },
+          "confidence": 0.2033998988568783
+        },
+        "position": 30.0
+      },
+      "timeline_position": 30.0,
+      "duration": 4.04,
+      "priority": 2,
+      "metadata": {
+        "clip_index": 3,
+        "slug": "and-again-in-my-mind-probably"
+      }
+    },
+    {
+      "command_type": "add_highlight_clip",
+      "parameters": {
+        "highlight": {
+          "slug": "a-well-renowned-geneticist-and",
+          "start_ms": 17620,
+          "end_ms": 24820,
+          "text": "a well-renowned geneticist, and certainly in my mind and most people's mind,",
+          "score": 3.645137320865284,
+          "breakdown": {
+            "complete_sentence": 0.0,
+            "keywords": 3.0,
+            "audio_rms": 0.6451373208652843
+          },
+          "confidence": 0.32256866043264215
+        },
+        "position": 40.0
+      },
+      "timeline_position": 40.0,
+      "duration": 7.2,
+      "priority": 2,
+      "metadata": {
+        "clip_index": 4,
+        "slug": "a-well-renowned-geneticist-and"
+      }
+    },
+    {
+      "command_type": "add_subtitles",
+      "parameters": {
+        "subtitles_dir": "subtitles"
+      },
+      "timeline_position": 0,
+      "duration": 0,
+      "priority": 3,
+      "metadata": {
+        "description": "Add subtitle tracks"
+      }
+    },
+    {
+      "command_type": "export_timeline",
+      "parameters": {
+        "output_path": "montage_output.mp4",
+        "settings": {
+          "format": "mp4",
+          "resolution": "1920x1080",
+          "framerate": 24
+        }
+      },
+      "timeline_position": 0,
+      "duration": 0,
+      "priority": 4,
+      "metadata": {
+        "description": "Export final video"
+      }
+    }
+  ],
+  "project_id": "79fb043b-6be4-4c12-9f45-f2e272c9051e",
+  "created_at": 1752848789.858577
+}

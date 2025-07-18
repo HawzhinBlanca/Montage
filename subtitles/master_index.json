@@ -1,0 +1,76 @@
+{
+  "generated_at": 1752848698.497358,
+  "total_clips": 5,
+  "clips": [
+    {
+      "slug": "welcome-to-the-program-we-are",
+      "start_ms": 8799,
+      "end_ms": 16820,
+      "duration_ms": 8021,
+      "lines_count": 2,
+      "word_count": 14,
+      "confidence": 0.8999972461412351,
+      "files": {
+        "srt": "subtitles/welcome-to-the-program-we-are.srt",
+        "vtt": "subtitles/welcome-to-the-program-we-are.vtt",
+        "json": "subtitles/welcome-to-the-program-we-are.json"
+      }
+    },
+    {
+      "slug": "the-most-prominent-longevity-s",
+      "start_ms": 24820,
+      "end_ms": 34640,
+      "duration_ms": 9820,
+      "lines_count": 3,
+      "word_count": 16,
+      "confidence": 0.8152843924860159,
+      "files": {
+        "srt": "subtitles/the-most-prominent-longevity-s.srt",
+        "vtt": "subtitles/the-most-prominent-longevity-s.vtt",
+        "json": "subtitles/the-most-prominent-longevity-s.json"
+      }
+    },
+    {
+      "slug": "who-needs-no-introduction-unti",
+      "start_ms": 35020,
+      "end_ms": 41340,
+      "duration_ms": 6320,
+      "lines_count": 2,
+      "word_count": 12,
+      "confidence": 0.8982496708631516,
+      "files": {
+        "srt": "subtitles/who-needs-no-introduction-unti.srt",
+        "vtt": "subtitles/who-needs-no-introduction-unti.vtt",
+        "json": "subtitles/who-needs-no-introduction-unti.json"
+      }
+    },
+    {
+      "slug": "and-again-in-my-mind-probably",
+      "start_ms": 41760,
+      "end_ms": 45800,
+      "duration_ms": 4040,
+      "lines_count": 2,
+      "word_count": 12,
+      "confidence": 0.9382728891713279,
+      "files": {
+        "srt": "subtitles/and-again-in-my-mind-probably.srt",
+        "vtt": "subtitles/and-again-in-my-mind-probably.vtt",
+        "json": "subtitles/and-again-in-my-mind-probably.json"
+      }
+    },
+    {
+      "slug": "a-well-renowned-geneticist-and",
+      "start_ms": 17620,
+      "end_ms": 24820,
+      "duration_ms": 7200,
+      "lines_count": 2,
+      "word_count": 12,
+      "confidence": 0.7973075502685139,
+      "files": {
+        "srt": "subtitles/a-well-renowned-geneticist-and.srt",
+        "vtt": "subtitles/a-well-renowned-geneticist-and.vtt",
+        "json": "subtitles/a-well-renowned-geneticist-and.json"
+      }
+    }
+  ]
+}

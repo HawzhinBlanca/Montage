@@ -1,0 +1,102 @@
+{
+  "clip_info": {
+    "slug": "and-again-in-my-mind-probably",
+    "start_ms": 41760,
+    "end_ms": 45800,
+    "duration_ms": 4040,
+    "word_count": 12,
+    "average_confidence": 0.9382728891713279
+  },
+  "subtitles": [
+    {
+      "index": 1,
+      "start_ms": 0,
+      "end_ms": 2620,
+      "text": "again, in my mind, probably the best",
+      "confidence": 0.9393667493547712,
+      "words": [
+        {
+          "word": " again,",
+          "start": 0,
+          "end": 0.76,
+          "confidence": 0.7246741652488708
+        },
+        {
+          "word": " in",
+          "start": 0.92,
+          "end": 0.96,
+          "confidence": 0.9546659588813782
+        },
+        {
+          "word": " my",
+          "start": 0.96,
+          "end": 1.12,
+          "confidence": 0.9991956353187561
+        },
+        {
+          "word": " mind,",
+          "start": 1.12,
+          "end": 1.5,
+          "confidence": 0.9995488524436951
+        },
+        {
+          "word": " probably",
+          "start": 1.62,
+          "end": 1.84,
+          "confidence": 0.982058048248291
+        },
+        {
+          "word": " the",
+          "start": 1.84,
+          "end": 2.1,
+          "confidence": 0.9695650339126587
+        },
+        {
+          "word": " best",
+          "start": 2.1,
+          "end": 2.62,
+          "confidence": 0.9458595514297485
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "start_ms": 2720,
+      "end_ms": 4140,
+      "text": "health minister we've ever had.",
+      "confidence": 0.9371790289878845,
+      "words": [
+        {
+          "word": " health",
+          "start": 2.62,
+          "end": 2.86,
+          "confidence": 0.9189270734786987
+        },
+        {
+          "word": " minister",
+          "start": 2.86,
+          "end": 3.16,
+          "confidence": 0.8643583059310913
+        },
+        {
+          "word": " we've",
+          "start": 3.16,
+          "end": 3.52,
+          "confidence": 0.9099854230880737
+        },
+        {
+          "word": " ever",
+          "start": 3.52,
+          "end": 3.7,
+          "confidence": 0.9942430853843689
+        },
+        {
+          "word": " had.",
+          "start": 3.7,
+          "end": 4.04,
+          "confidence": 0.9983812570571899
+        }
+      ]
+    }
+  ]
+}

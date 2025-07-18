@@ -1,0 +1,114 @@
+{
+  "clip_info": {
+    "slug": "welcome-to-the-program-we-are",
+    "start_ms": 8799,
+    "end_ms": 16820,
+    "duration_ms": 8021,
+    "word_count": 14,
+    "average_confidence": 0.8999972461412351
+  },
+  "subtitles": [
+    {
+      "index": 1,
+      "start_ms": 0,
+      "end_ms": 3681,
+      "text": "Welcome to the program. We are very, very",
+      "confidence": 0.8340795375406742,
+      "words": [
+        {
+          "word": " Welcome",
+          "start": 0,
+          "end": 0.921,
+          "confidence": 0.6958828568458557
+        },
+        {
+          "word": " to",
+          "start": 0.921,
+          "end": 1.561,
+          "confidence": 0.9794726371765137
+        },
+        {
+          "word": " the",
+          "start": 1.561,
+          "end": 1.681,
+          "confidence": 0.9855778813362122
+        },
+        {
+          "word": " program.",
+          "start": 1.681,
+          "end": 2.101,
+          "confidence": 0.6018004417419434
+        },
+        {
+          "word": " We",
+          "start": 2.421,
+          "end": 2.421,
+          "confidence": 0.9863184690475464
+        },
+        {
+          "word": " are",
+          "start": 2.421,
+          "end": 2.721,
+          "confidence": 0.4381394684314728
+        },
+        {
+          "word": " very,",
+          "start": 2.721,
+          "end": 3.481,
+          "confidence": 0.9862354397773743
+        },
+        {
+          "word": " very",
+          "start": 3.501,
+          "end": 3.681,
+          "confidence": 0.9992091059684753
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "start_ms": 3781,
+      "end_ms": 8121,
+      "text": "excited to have Professor David Sinclair,",
+      "confidence": 0.9659149547417959,
+      "words": [
+        {
+          "word": " excited",
+          "start": 3.681,
+          "end": 4.801,
+          "confidence": 0.988564670085907
+        },
+        {
+          "word": " to",
+          "start": 4.801,
+          "end": 5.141,
+          "confidence": 0.9939572811126709
+        },
+        {
+          "word": " have",
+          "start": 5.141,
+          "end": 5.541,
+          "confidence": 0.9976993203163147
+        },
+        {
+          "word": " Professor",
+          "start": 5.541,
+          "end": 6.741,
+          "confidence": 0.9355432987213135
+        },
+        {
+          "word": " David",
+          "start": 6.741,
+          "end": 7.301,
+          "confidence": 0.9954642653465271
+        },
+        {
+          "word": " Sinclair,",
+          "start": 7.301,
+          "end": 8.021,
+          "confidence": 0.884260892868042
+        }
+      ]
+    }
+  ]
+}

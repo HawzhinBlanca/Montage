@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-07-18T12:04:32.417062",
+  "tests": {
+    "imports": "ERROR: Database pool initialization failed: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\n",
+    "configuration": "PASSED",
+    "database_security": "FAILED",
+    "resource_cleanup": "PASSED",
+    "retry_logic": "FAILED",
+    "video_processing": "PASSED",
+    "audio_processing": "PASSED",
+    "integration": "FAILED"
+  },
+  "summary": {
+    "total_tests": 8,
+    "passed": 4,
+    "failed": 4,
+    "success_rate": 50.0
+  }
+}

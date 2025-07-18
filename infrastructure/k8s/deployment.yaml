@@ -1,0 +1,277 @@
+# Main application deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-pipeline-api
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: api
+    app.kubernetes.io/instance: production
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: video-pipeline
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: video-pipeline
+        app.kubernetes.io/component: api
+        app.kubernetes.io/instance: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9099"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: video-processor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: api
+        image: video-pipeline:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9099
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8000"
+        - name: METRICS_PORT
+          value: "9099"
+        envFrom:
+        - configMapRef:
+            name: video-pipeline-config
+        - secretRef:
+            name: video-pipeline-secrets
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: video-processing
+          mountPath: /tmp/video_processing
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: video-processing
+        emptyDir:
+          sizeLimit: 10Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - video-pipeline
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                  - api
+              topologyKey: kubernetes.io/hostname
+
+---
+# Video processor worker deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-pipeline-worker
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/instance: production
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: video-pipeline
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: video-pipeline
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/instance: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9099"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: video-processor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: worker
+        image: video-pipeline-worker:latest
+        imagePullPolicy: Always
+        command: ["python", "worker.py"]
+        ports:
+        - name: metrics
+          containerPort: 9099
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: video-pipeline-config
+        - secretRef:
+            name: video-pipeline-secrets
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 4Gi
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: video-processing
+          mountPath: /tmp/video_processing
+        - name: shm
+          mountPath: /dev/shm
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: video-processing
+        emptyDir:
+          sizeLimit: 20Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      nodeSelector:
+        workload: video-processing
+      tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "video-processing"
+        effect: "NoSchedule"
+
+---
+# GPU-accelerated worker deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-pipeline-gpu-worker
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: gpu-worker
+    app.kubernetes.io/instance: production
+spec:
+  replicas: 0  # Scale up based on demand
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: video-pipeline
+      app.kubernetes.io/component: gpu-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: video-pipeline
+        app.kubernetes.io/component: gpu-worker
+        app.kubernetes.io/instance: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9099"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: video-processor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: gpu-worker
+        image: video-pipeline-gpu:latest
+        imagePullPolicy: Always
+        command: ["python", "gpu_worker.py"]
+        ports:
+        - name: metrics
+          containerPort: 9099
+          protocol: TCP
+        env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,video,utility"
+        envFrom:
+        - configMapRef:
+            name: video-pipeline-config
+        - secretRef:
+            name: video-pipeline-secrets
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+            nvidia.com/gpu: 1
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: video-processing
+          mountPath: /tmp/video_processing
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: video-processing
+        emptyDir:
+          sizeLimit: 30Gi
+      nodeSelector:
+        node-type: gpu
+      tolerations:
+      - key: "nvidia.com/gpu"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"

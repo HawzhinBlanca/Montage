@@ -1,0 +1,76 @@
+# Service for API
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-pipeline-api
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: api
+    app.kubernetes.io/instance: production
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9099
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: api
+
+---
+# Service for metrics collection
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-pipeline-metrics
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9099"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 9099
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: video-pipeline
+
+---
+# Headless service for worker discovery
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-pipeline-workers
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/instance: production
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: metrics
+    port: 9099
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: worker

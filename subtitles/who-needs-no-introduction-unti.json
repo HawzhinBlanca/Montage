@@ -1,0 +1,102 @@
+{
+  "clip_info": {
+    "slug": "who-needs-no-introduction-unti",
+    "start_ms": 35020,
+    "end_ms": 41340,
+    "duration_ms": 6320,
+    "word_count": 12,
+    "average_confidence": 0.8982496708631516
+  },
+  "subtitles": [
+    {
+      "index": 1,
+      "start_ms": 0,
+      "end_ms": 4260,
+      "text": "needs no introduction until recently Greg",
+      "confidence": 0.9029350380102793,
+      "words": [
+        {
+          "word": " needs",
+          "start": 0,
+          "end": 0.4,
+          "confidence": 0.9818603992462158
+        },
+        {
+          "word": " no",
+          "start": 0.4,
+          "end": 0.6,
+          "confidence": 0.980708658695221
+        },
+        {
+          "word": " introduction",
+          "start": 0.6,
+          "end": 1.72,
+          "confidence": 0.9970259070396423
+        },
+        {
+          "word": " until",
+          "start": 1.72,
+          "end": 3.1,
+          "confidence": 0.8800013065338135
+        },
+        {
+          "word": " recently",
+          "start": 3.1,
+          "end": 3.68,
+          "confidence": 0.988135814666748
+        },
+        {
+          "word": " Greg",
+          "start": 3.68,
+          "end": 4.26,
+          "confidence": 0.5898781418800354
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "start_ms": 4360,
+      "end_ms": 6420,
+      "text": "was the Federal Health Minister of",
+      "confidence": 0.8935643037160238,
+      "words": [
+        {
+          "word": " was",
+          "start": 4.26,
+          "end": 4.54,
+          "confidence": 0.8445132970809937
+        },
+        {
+          "word": " the",
+          "start": 4.54,
+          "end": 4.76,
+          "confidence": 0.9765873551368713
+        },
+        {
+          "word": " Federal",
+          "start": 4.76,
+          "end": 5.02,
+          "confidence": 0.6948257684707642
+        },
+        {
+          "word": " Health",
+          "start": 5.02,
+          "end": 5.34,
+          "confidence": 0.8858655095100403
+        },
+        {
+          "word": " Minister",
+          "start": 5.34,
+          "end": 5.6,
+          "confidence": 0.9800103306770325
+        },
+        {
+          "word": " of",
+          "start": 5.6,
+          "end": 6.32,
+          "confidence": 0.9795835614204407
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+============================================================
+🎬 MONTAGE QUALITY CONTROL REPORT
+============================================================
+Project: Test_Montage
+Video: test_video.mp4
+Highlights: 5
+Duration: 35.4s
+Overall Score: 7.5/10
+Generated: 2025-07-18 17:28:23
+
+📋 ISSUES FOUND:
+
+MEDIUM PRIORITY (2 issues):
+  • Low resolution: 640x360 (recommended: ≥1280x720)
+    Location: entire_video
+    Category: video
+  • Overlapping clips: and-again-in-my-mind-probably and a-well-renowned-geneticist-and
+    Location: 45800ms-17620ms
+    Category: timing
+
+LOW PRIORITY (1 issues):
+  • Could not analyze audio levels: stdout and stderr arguments may not be used with capture_output.
+    Location: entire_video
+    Category: audio
+
+============================================================

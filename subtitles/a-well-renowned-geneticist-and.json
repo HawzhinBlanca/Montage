@@ -1,0 +1,102 @@
+{
+  "clip_info": {
+    "slug": "a-well-renowned-geneticist-and",
+    "start_ms": 17620,
+    "end_ms": 24820,
+    "duration_ms": 7200,
+    "word_count": 12,
+    "average_confidence": 0.7973075502685139
+  },
+  "subtitles": [
+    {
+      "index": 1,
+      "start_ms": 0,
+      "end_ms": 4000,
+      "text": "well -renowned geneticist, and certainly",
+      "confidence": 0.7146439284086228,
+      "words": [
+        {
+          "word": " well",
+          "start": 0,
+          "end": 0.12,
+          "confidence": 0.1614263504743576
+        },
+        {
+          "word": "-renowned",
+          "start": 0.12,
+          "end": 0.56,
+          "confidence": 0.7729660868644714
+        },
+        {
+          "word": " geneticist,",
+          "start": 0.56,
+          "end": 2.2,
+          "confidence": 0.9885250329971313
+        },
+        {
+          "word": " and",
+          "start": 2.2,
+          "end": 2.88,
+          "confidence": 0.9841757416725159
+        },
+        {
+          "word": " certainly",
+          "start": 2.88,
+          "end": 4.0,
+          "confidence": 0.6661264300346375
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "start_ms": 4100,
+      "end_ms": 7300,
+      "text": "in my mind and most people's mind,",
+      "confidence": 0.8799711721284049,
+      "words": [
+        {
+          "word": " in",
+          "start": 4.0,
+          "end": 4.24,
+          "confidence": 0.9299952983856201
+        },
+        {
+          "word": " my",
+          "start": 4.24,
+          "end": 4.36,
+          "confidence": 0.9695504903793335
+        },
+        {
+          "word": " mind",
+          "start": 4.36,
+          "end": 4.92,
+          "confidence": 0.998935878276825
+        },
+        {
+          "word": " and",
+          "start": 4.92,
+          "end": 5.1,
+          "confidence": 0.41802147030830383
+        },
+        {
+          "word": " most",
+          "start": 5.1,
+          "end": 5.64,
+          "confidence": 0.9677720069885254
+        },
+        {
+          "word": " people's",
+          "start": 5.64,
+          "end": 6.86,
+          "confidence": 0.9098581969738007
+        },
+        {
+          "word": " mind,",
+          "start": 6.86,
+          "end": 7.2,
+          "confidence": 0.9656648635864258
+        }
+      ]
+    }
+  ]
+}

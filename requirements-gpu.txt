@@ -1,0 +1,18 @@
+# GPU-specific requirements for AI Video Processing Pipeline
+
+# CUDA support for PyTorch
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# GPU-accelerated video processing
+cupy-cuda12x>=12.0.0
+
+# NVIDIA ML libraries
+nvidia-ml-py>=11.495.46
+
+# GPU monitoring
+pynvml>=11.4.1
+
+# CUDA FFmpeg (if available)
+# ffmpeg-python>=0.2.0

@@ -1,0 +1,116 @@
+# ConfigMap for AI Video Processing Pipeline
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: video-pipeline-config
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: config
+data:
+  # Application configuration
+  LOG_LEVEL: "INFO"
+  METRICS_PORT: "9099"
+  BUDGET_LIMIT: "5.00"
+  
+  # Processing configuration
+  FFMPEG_PATH: "/usr/bin/ffmpeg"
+  FFPROBE_PATH: "/usr/bin/ffprobe"
+  TEMP_DIR: "/tmp/video_processing"
+  
+  # Performance tuning
+  MAX_CONCURRENT_JOBS: "10"
+  PROCESSING_TIMEOUT: "3600"  # 1 hour
+  CHECKPOINT_TTL: "86400"     # 24 hours
+  
+  # Queue configuration
+  QUEUE_MAX_SIZE: "100"
+  QUEUE_BATCH_SIZE: "5"
+  
+  # Database configuration (non-sensitive)
+  DB_POOL_MIN_SIZE: "2"
+  DB_POOL_MAX_SIZE: "20"
+  DB_POOL_TIMEOUT: "30"
+  
+  # Redis configuration (non-sensitive)
+  REDIS_DB: "0"
+  REDIS_TIMEOUT: "5"
+  REDIS_MAX_CONNECTIONS: "50"
+  
+  # API configuration
+  API_VERSION: "v1"
+  API_RATE_LIMIT: "100"  # requests per minute
+  API_TIMEOUT: "300"     # 5 minutes
+  
+  # Video processing limits
+  MAX_VIDEO_DURATION: "7200"  # 2 hours
+  MAX_VIDEO_SIZE: "5368709120"  # 5 GB
+  SUPPORTED_FORMATS: "mp4,avi,mov,mkv"
+  
+  # Audio processing
+  AUDIO_SAMPLE_RATE: "48000"
+  AUDIO_CHANNELS: "2"
+  AUDIO_BITRATE: "128k"
+  
+  # Feature flags
+  ENABLE_GPU_ACCELERATION: "true"
+  ENABLE_SMART_CROP: "true"
+  ENABLE_TRANSCRIPT_ANALYSIS: "true"
+  ENABLE_COST_TRACKING: "true"
+  
+  # Monitoring
+  ENABLE_METRICS: "true"
+  ENABLE_TRACING: "true"
+  METRICS_NAMESPACE: "video_pipeline"
+  
+---
+# Secret template for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: video-pipeline-secrets
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: config
+type: Opaque
+stringData:
+  # Database connection
+  DATABASE_URL: "postgresql://video_user:CHANGE_ME@rds-endpoint:5432/video_pipeline"
+  
+  # Redis connection
+  REDIS_URL: "redis://elasticache-endpoint:6379/0"
+  
+  # API keys (to be replaced with actual values)
+  OPENAI_API_KEY: "CHANGE_ME"
+  
+  # AWS credentials (if not using IAM roles)
+  AWS_ACCESS_KEY_ID: "CHANGE_ME"
+  AWS_SECRET_ACCESS_KEY: "CHANGE_ME"
+  
+  # S3 configuration
+  S3_BUCKET: "video-pipeline-storage"
+  S3_REGION: "us-west-2"
+  
+  # Webhook secrets
+  WEBHOOK_SECRET: "CHANGE_ME"
+  
+  # JWT secret for API authentication
+  JWT_SECRET: "CHANGE_ME"
+  
+  # PagerDuty integration key
+  PAGERDUTY_INTEGRATION_KEY: "CHANGE_ME"
+  
+---
+# Service Account with IAM role annotation
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: video-processor
+  namespace: video-pipeline
+  labels:
+    app.kubernetes.io/name: video-pipeline
+    app.kubernetes.io/component: service-account
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/video-pipeline-video-processor"
+automountServiceAccountToken: true

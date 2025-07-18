@@ -1,0 +1,85 @@
+# Alertmanager configuration
+
+global:
+  resolve_timeout: 5m
+  # SMTP configuration (optional)
+  # smtp_smarthost: 'smtp.gmail.com:587'
+  # smtp_from: 'alertmanager@example.com'
+  # smtp_auth_username: 'alertmanager@example.com'
+  # smtp_auth_password: 'password'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters
+route:
+  # Group alerts by these labels
+  group_by: ['alertname', 'cluster', 'service']
+  
+  # Wait time before sending initial notification
+  group_wait: 10s
+  
+  # Wait time before sending notifications about new alerts in the group
+  group_interval: 10s
+  
+  # Wait time before resending a notification
+  repeat_interval: 1h
+  
+  # Default receiver
+  receiver: 'video-pipeline-alerts'
+  
+  # Child routes
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      repeat_interval: 5m
+      
+    # Budget alerts
+    - match:
+        alertname: BudgetExceeded
+      receiver: 'budget-alerts'
+      group_wait: 0s
+      repeat_interval: 30m
+
+# Notification receivers
+receivers:
+  # Default receiver
+  - name: 'video-pipeline-alerts'
+    webhook_configs:
+      - url: 'http://localhost:8001/webhook/alerts'
+        send_resolved: true
+        http_config:
+          bearer_token: '${WEBHOOK_TOKEN}'
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    webhook_configs:
+      - url: 'http://localhost:8001/webhook/critical'
+        send_resolved: true
+    # Optionally add PagerDuty
+    # pagerduty_configs:
+    #   - service_key: '${PAGERDUTY_SERVICE_KEY}'
+
+  # Budget alerts receiver  
+  - name: 'budget-alerts'
+    webhook_configs:
+      - url: 'http://localhost:8001/webhook/budget'
+        send_resolved: false
+    # Optionally add email
+    # email_configs:
+    #   - to: 'finance@example.com'
+    #     headers:
+    #       Subject: 'Budget Alert: Video Processing'
+
+# Inhibition rules to mute alerts
+inhibit_rules:
+  # Inhibit less severe alerts if critical alerts are firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'job_id']

@@ -1,0 +1,48 @@
+{
+  "report_id": "21319bfe-c14a-494b-8a29-8487ff54a675",
+  "project_name": "Test_Montage",
+  "video_path": "test_video.mp4",
+  "highlights_count": 5,
+  "total_duration_ms": 35401,
+  "issues": [
+    {
+      "issue_id": "a5c244e6-da03-47d6-a9f0-cd1a2a15b202",
+      "severity": "low",
+      "category": "audio",
+      "description": "Could not analyze audio levels: stdout and stderr arguments may not be used with capture_output.",
+      "location": "entire_video",
+      "auto_detected": true,
+      "resolved": false,
+      "resolution_notes": "",
+      "created_at": 1752848903.422443
+    },
+    {
+      "issue_id": "f7c34f06-e105-4331-845c-faafec23ba03",
+      "severity": "medium",
+      "category": "video",
+      "description": "Low resolution: 640x360 (recommended: \u22651280x720)",
+      "location": "entire_video",
+      "auto_detected": true,
+      "resolved": false,
+      "resolution_notes": "",
+      "created_at": 1752848903.542372
+    },
+    {
+      "issue_id": "0c3844d6-b735-49ae-bf63-4e200cc6d849",
+      "severity": "medium",
+      "category": "timing",
+      "description": "Overlapping clips: and-again-in-my-mind-probably and a-well-renowned-geneticist-and",
+      "location": "45800ms-17620ms",
+      "auto_detected": true,
+      "resolved": false,
+      "resolution_notes": "",
+      "created_at": 1752848903.542728
+    }
+  ],
+  "overall_score": 7.5,
+  "recommendations": [],
+  "created_at": 1752848903.542828,
+  "approved": true,
+  "approved_by": "AutoReviewer",
+  "approved_at": 1752848903.543064
+}

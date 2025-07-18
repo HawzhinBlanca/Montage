@@ -1,0 +1,27 @@
+# Process exporter configuration for monitoring FFmpeg and other processes
+
+process_names:
+  # Monitor all FFmpeg processes
+  - name: "{{.Comm}}"
+    cmdline:
+    - 'ffmpeg'
+
+  # Monitor FFprobe processes
+  - name: "{{.Comm}}"
+    cmdline:
+    - 'ffprobe'
+
+  # Monitor Python processes (our application)
+  - name: "{{.Comm}}"
+    cmdline:
+    - 'python.*video_processor'
+
+  # Monitor PostgreSQL
+  - name: "{{.Comm}}"
+    cmdline:
+    - 'postgres'
+
+  # Monitor Redis
+  - name: "{{.Comm}}"
+    cmdline:
+    - 'redis-server'

@@ -1,0 +1,119 @@
+# Alert rules for AI Video Processing Pipeline
+
+groups:
+  - name: video_pipeline_alerts
+    interval: 30s
+    rules:
+      # Budget alerts
+      - alert: BudgetExceeded
+        expr: video_job_total_cost > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Video job {{ $labels.job_id }} exceeded budget"
+          description: "Job {{ $labels.job_id }} has cost ${{ $value }} which exceeds the $5 limit"
+
+      - alert: HighCostRate
+        expr: rate(api_cost_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API cost rate detected"
+          description: "API {{ $labels.api_name }} is costing ${{ $value }}/sec"
+
+      # Performance alerts
+      - alert: SlowProcessing
+        expr: video_processing_time_ratio > 1.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Video processing is slow"
+          description: "Processing is taking {{ $value }}x the source duration (limit is 1.2x)"
+
+      - alert: QueueBacklog
+        expr: video_queue_size{queue="pending"} > 50
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large processing queue backlog"
+          description: "{{ $value }} videos waiting to be processed"
+
+      # Error rate alerts
+      - alert: HighErrorRate
+        expr: rate(video_job_total{status="failed"}[5m]) / rate(video_job_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High video processing error rate"
+          description: "{{ $value | humanizePercentage }} of jobs are failing"
+
+      - alert: FFmpegCrashes
+        expr: rate(ffmpeg_crash_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "FFmpeg is crashing frequently"
+          description: "FFmpeg crashed {{ $value }} times per second in the last 5 minutes"
+
+      # Resource alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: db_pool_available_connections == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "No available database connections for {{ $labels.instance }}"
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value | humanizePercentage }} of available memory"
+
+      # Quality alerts
+      - alert: AudioLoudnessSpreadHigh
+        expr: audio_loudness_spread_lufs > 1.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Audio loudness spread exceeds limit"
+          description: "Audio has {{ $value }} LU spread (limit is 1.5 LU)"
+
+      - alert: HDRInputsRejected
+        expr: rate(video_validation_rejected{reason="hdr"}[1h]) > 5
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Multiple HDR videos rejected"
+          description: "{{ $value }} HDR videos rejected in the last hour"
+
+      # API alerts
+      - alert: OpenAIRateLimited
+        expr: rate(api_call_total{api="openai",status="rate_limited"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "OpenAI API rate limiting detected"
+          description: "Getting rate limited {{ $value }} times per second"
+
+      - alert: WhisperAPIDown
+        expr: up{job="whisper"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Whisper API is down"
+          description: "Cannot reach Whisper transcription service"
