@@ -16,6 +16,12 @@ from pyannote.audio import Pipeline
 import ffmpeg
 
 from .config import DATABASE_URL, DEEPGRAM_API_KEY
+from .budget_decorator import priced, calculate_deepgram_cost
+
+# Fix cache permissions
+import os
+os.environ["HF_HOME"] = os.path.expanduser("~/.cache/huggingface")
+os.environ["TRANSFORMERS_CACHE"] = os.path.expanduser("~/.cache/huggingface")
 
 def sha256_file(path: str) -> str:
     """Calculate SHA256 hash of file for caching"""
@@ -55,13 +61,27 @@ def transcribe_faster_whisper(wav_path: str) -> List[Dict[str, Any]]:
         
         words = []
         for segment in segments:
-            for word in segment.words:
-                words.append({
-                    "word": word.word,
-                    "start": word.start,
-                    "end": word.end,
-                    "confidence": word.probability
-                })
+            if hasattr(segment, 'words') and segment.words:
+                for word in segment.words:
+                    words.append({
+                        "word": word.word,
+                        "start": word.start,
+                        "end": word.end,
+                        "confidence": word.probability
+                    })
+            else:
+                # Fallback: use segment-level data
+                segment_words = segment.text.split()
+                duration = segment.end - segment.start
+                word_duration = duration / len(segment_words) if segment_words else 0
+                
+                for i, word in enumerate(segment_words):
+                    words.append({
+                        "word": word,
+                        "start": segment.start + i * word_duration,
+                        "end": segment.start + (i + 1) * word_duration,
+                        "confidence": 0.8  # Default confidence
+                    })
         
         print(f"✅ Faster-whisper transcribed {len(words)} words")
         return words
@@ -69,8 +89,9 @@ def transcribe_faster_whisper(wav_path: str) -> List[Dict[str, Any]]:
         print(f"❌ Faster-whisper failed: {e}")
         return []
 
+@priced("deepgram", "transcribe", calculate_deepgram_cost)
 def transcribe_deepgram(wav_path: str) -> List[Dict[str, Any]]:
-    """REAL Deepgram transcription"""
+    """REAL Deepgram transcription with cost tracking"""
     if not DEEPGRAM_API_KEY:
         print("⚠️  Deepgram API key not set - skipping")
         return []
@@ -94,14 +115,16 @@ def transcribe_deepgram(wav_path: str) -> List[Dict[str, Any]]:
         response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
         
         words = []
-        for result in response["results"]["channels"][0]["alternatives"]:
-            for word in result["words"]:
-                words.append({
-                    "word": word["word"],
-                    "start": word["start"],
-                    "end": word["end"],
-                    "confidence": word["confidence"]
-                })
+        if "results" in response and "channels" in response["results"] and response["results"]["channels"]:
+            for result in response["results"]["channels"][0]["alternatives"]:
+                if "words" in result:
+                    for word in result["words"]:
+                        words.append({
+                            "word": word["word"],
+                            "start": word["start"],
+                            "end": word["end"],
+                            "confidence": word.get("confidence", 0.8)
+                        })
         
         print(f"✅ Deepgram transcribed {len(words)} words")
         return words

@@ -10,9 +10,7 @@ from anthropic import Anthropic
 import ffmpeg
 
 from .config import OPENAI_API_KEY, ANTHROPIC_API_KEY, MAX_COST_USD
-
-# Track API costs
-total_cost = 0.0
+from .budget_decorator import priced, calculate_openai_cost, calculate_anthropic_cost, get_budget_status
 
 def get_audio_energy(video_path: str, start_time: float, duration: float) -> float:
     """Get audio energy/volume for a segment"""
@@ -145,15 +143,16 @@ def chunk_transcript_for_ai(transcript: str, max_tokens: int = 7000) -> List[str
     
     return chunks
 
+@priced("anthropic", "analyze", calculate_anthropic_cost)
 def analyze_with_claude(text: str) -> Dict[str, Any]:
-    """REAL Claude analysis (cost-tracked)"""
-    global total_cost
+    """REAL Claude analysis with cost tracking"""
+    budget_status = get_budget_status()
     
-    if total_cost >= MAX_COST_USD:
-        print(f"❌ Cost limit reached: ${total_cost:.2f}")
+    if budget_status['remaining'] <= 0:
+        print(f"❌ Cost limit reached: ${budget_status['total_spent']:.2f}")
         return {"highlights": [], "cost": 0}
     
-    if not ANTHROPIC_API_KEY:
+    if not ANTHROPIC_API_KEY or ANTHROPIC_API_KEY == "your-anthropic-key-here":
         print("❌ Anthropic API key not set")
         return {"highlights": [], "cost": 0}
     
@@ -185,31 +184,27 @@ Focus on: insights, discoveries, expert opinions, surprising facts, actionable a
             messages=[{"role": "user", "content": prompt}]
         )
         
-        # Estimate cost (rough approximation)
-        estimated_cost = 0.003 * (len(prompt) + 1000) / 1000  # $0.003 per 1K tokens
-        total_cost += estimated_cost
-        
         # Parse response
         response_text = response.content[0].text
         result = json.loads(response_text)
-        result["cost"] = estimated_cost
         
-        print(f"✅ Claude analysis complete - cost: ${estimated_cost:.3f}")
+        print(f"✅ Claude analysis complete")
         return result
         
     except Exception as e:
         print(f"❌ Claude analysis failed: {e}")
         return {"highlights": [], "cost": 0}
 
+@priced("openai", "analyze", calculate_openai_cost)
 def analyze_with_gpt(text: str) -> Dict[str, Any]:
-    """REAL GPT-4 analysis (cost-tracked)"""
-    global total_cost
+    """REAL GPT-4 analysis with cost tracking"""
+    budget_status = get_budget_status()
     
-    if total_cost >= MAX_COST_USD:
-        print(f"❌ Cost limit reached: ${total_cost:.2f}")
+    if budget_status['remaining'] <= 0:
+        print(f"❌ Cost limit reached: ${budget_status['total_spent']:.2f}")
         return {"highlights": [], "cost": 0}
     
-    if not OPENAI_API_KEY:
+    if not OPENAI_API_KEY or OPENAI_API_KEY == "your-openai-key-here":
         print("❌ OpenAI API key not set")
         return {"highlights": [], "cost": 0}
     
@@ -246,16 +241,10 @@ Focus on: insights, discoveries, expert opinions, surprising facts, actionable a
             temperature=0.3
         )
         
-        # Calculate actual cost
-        usage = response.usage
-        cost = (usage.prompt_tokens * 0.00015 + usage.completion_tokens * 0.0006) / 1000
-        total_cost += cost
-        
         # Parse response
         result = json.loads(response.choices[0].message.content)
-        result["cost"] = cost
         
-        print(f"✅ GPT analysis complete - cost: ${cost:.3f}")
+        print(f"✅ GPT analysis complete")
         return result
         
     except Exception as e:
@@ -340,7 +329,8 @@ def choose_highlights(words: List[Dict], audio_energy: List[float], mode: str = 
                     ai_results.append(gpt_result)
             
             # Stop if cost limit reached
-            if total_cost >= MAX_COST_USD:
+            budget_status = get_budget_status()
+            if budget_status['total_spent'] >= MAX_COST_USD:
                 break
         
         # Merge AI insights with local scoring
@@ -359,10 +349,11 @@ def choose_highlights(words: List[Dict], audio_energy: List[float], mode: str = 
                 "end_ms": int(segment["end"] * 1000),
                 "score": segment["score"],
                 "method": "premium_ai",
-                "cost": total_cost
+                "cost": get_budget_status()['total_spent']
             })
         
-        print(f"✅ Premium mode: {len(clips)} highlights selected, cost: ${total_cost:.3f}")
+        final_cost = get_budget_status()['total_spent']
+        print(f"✅ Premium mode: {len(clips)} highlights selected, cost: ${final_cost:.3f}")
         return clips
     
     else:
@@ -370,4 +361,5 @@ def choose_highlights(words: List[Dict], audio_energy: List[float], mode: str = 
 
 def get_total_cost() -> float:
     """Get total API cost spent"""
-    return total_cost
+    from .budget_decorator import get_budget_status
+    return get_budget_status()['total_spent']

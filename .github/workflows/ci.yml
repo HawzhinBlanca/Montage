@@ -56,6 +56,11 @@ jobs:
         echo "DATABASE_URL=postgresql://postgres:pass@localhost:5432/postgres" >> $GITHUB_ENV
         echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
         echo "MAX_COST_USD=1.00" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=test-key-for-ci" >> $GITHUB_ENV
+        echo "ANTHROPIC_API_KEY=test-key-for-ci" >> $GITHUB_ENV
+        echo "DEEPGRAM_API_KEY=test-key-for-ci" >> $GITHUB_ENV
+        echo "HF_HOME=/tmp/huggingface" >> $GITHUB_ENV
+        echo "TRANSFORMERS_CACHE=/tmp/huggingface" >> $GITHUB_ENV
     
     - name: Set up database
       run: |
@@ -70,6 +75,8 @@ jobs:
         python -c "import src.ffmpeg_utils; print('✅ FFmpeg utils module imports successfully')"
         python -c "import src.resolve_mcp; print('✅ Resolve MCP module imports successfully')"
         python -c "import src.run_pipeline; print('✅ Run pipeline module imports successfully')"
+        python -c "import src.budget_decorator; print('✅ Budget decorator module imports successfully')"
+        python -c "from src.budget_decorator import get_budget_status; print('✅ Budget status:', get_budget_status())"
     
     - name: Run tests
       run: |

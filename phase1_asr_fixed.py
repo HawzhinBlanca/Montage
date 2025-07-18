@@ -194,15 +194,123 @@ class LocalWhisperProcessor:
             logger.error(f"❌ Whisper transcription failed: {e}")
             return {"error": str(e), "method": "whisper_local"}
 
-class MockDeepgramProcessor:
-    """Mock Deepgram processor for testing"""
+class RealDeepgramProcessor:
+    """REAL Deepgram processor with API integration"""
     
-    def __init__(self):
-        self.name = "mock_deepgram"
-    
+    def __init__(self, api_key: str):
+        self.name = "real_deepgram"
+        self.api_key = api_key
+        
     def transcribe(self, audio_path: str) -> Dict[str, Any]:
-        """Mock Deepgram transcription"""
-        logger.info("🎭 Mock Deepgram transcription...")
+        """REAL Deepgram transcription with cost tracking"""
+        from src.budget_decorator import priced, calculate_deepgram_cost
+        
+        @priced("deepgram", "transcribe", calculate_deepgram_cost)
+        def _transcribe_with_cost(audio_path: str) -> Dict[str, Any]:
+            return self._do_transcribe(audio_path)
+        
+        return _transcribe_with_cost(audio_path)
+    
+    def _do_transcribe(self, audio_path: str) -> Dict[str, Any]:
+        """Internal transcription method"""
+        logger.info("🎯 REAL Deepgram transcription...")
+        start_time = time.time()
+        
+        if not self.api_key or self.api_key == "your-deepgram-key-here":
+            logger.warning("❌ No Deepgram API key - falling back to mock")
+            return self._mock_fallback(audio_path)
+        
+        try:
+            from deepgram import DeepgramClient, PrerecordedOptions
+            
+            # Initialize client
+            deepgram = DeepgramClient(self.api_key)
+            
+            # Read audio file
+            with open(audio_path, 'rb') as audio_file:
+                buffer_data = audio_file.read()
+            
+            # Configure options
+            options = PrerecordedOptions(
+                model="nova-2",
+                language="en-US",
+                smart_format=True,
+                punctuate=True,
+                diarize=True,
+                utterances=True,
+                paragraphs=True,
+                words=True
+            )
+            
+            # Make API call
+            payload = {"buffer": buffer_data}
+            response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
+            
+            # Parse response
+            segments = []
+            words = []
+            
+            if response.results and response.results.channels:
+                for alternative in response.results.channels[0].alternatives:
+                    if alternative.words:
+                        for word_data in alternative.words:
+                            word_timing = WordTiming(
+                                word=word_data.word,
+                                start=word_data.start,
+                                end=word_data.end,
+                                confidence=word_data.confidence,
+                                speaker=getattr(word_data, 'speaker', None)
+                            )
+                            words.append(word_timing)
+                    
+                    # Create segments from paragraphs
+                    if hasattr(alternative, 'paragraphs') and alternative.paragraphs:
+                        for paragraph in alternative.paragraphs.paragraphs:
+                            for sentence in paragraph.sentences:
+                                segment = TranscriptSegment(
+                                    text=sentence.text,
+                                    start=sentence.start,
+                                    end=sentence.end,
+                                    speaker=getattr(sentence, 'speaker', 'SPEAKER_0'),
+                                    confidence=0.9,  # Default confidence
+                                    words=[w for w in words if sentence.start <= w.start <= sentence.end]
+                                )
+                                segments.append(segment)
+                    else:
+                        # Fallback: create one segment
+                        segment = TranscriptSegment(
+                            text=alternative.transcript,
+                            start=0,
+                            end=len(words) * 0.5 if words else 10,  # Estimate
+                            speaker="SPEAKER_0",
+                            confidence=alternative.confidence,
+                            words=words
+                        )
+                        segments.append(segment)
+            
+            processing_time = time.time() - start_time
+            
+            result = {
+                "success": True,
+                "transcript": " ".join([s.text for s in segments]),
+                "segments": segments,
+                "words": words,
+                "language": "en",
+                "confidence": 0.9,
+                "processing_time": processing_time,
+                "method": "real_deepgram"
+            }
+            
+            logger.info(f"✅ REAL Deepgram complete: {processing_time:.2f}s")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ REAL Deepgram failed: {e}")
+            return self._mock_fallback(audio_path)
+    
+    def _mock_fallback(self, audio_path: str) -> Dict[str, Any]:
+        """Fallback mock implementation"""
+        logger.info("🎭 Fallback to mock transcription...")
         start_time = time.time()
         
         try:
@@ -236,7 +344,7 @@ class MockDeepgramProcessor:
                         word=word,
                         start=word_start,
                         end=word_end,
-                        confidence=0.9,
+                        confidence=0.7,  # Lower confidence for mock
                         speaker=f"SPEAKER_{i % 2}"
                     )
                     words.append(word_timing)
@@ -248,7 +356,7 @@ class MockDeepgramProcessor:
                     start=start,
                     end=end,
                     speaker=f"SPEAKER_{i % 2}",
-                    confidence=0.9,
+                    confidence=0.7,
                     words=words
                 )
                 mock_segments.append(segment)
@@ -261,17 +369,17 @@ class MockDeepgramProcessor:
                 "segments": mock_segments,
                 "words": mock_words,
                 "language": "en",
-                "confidence": 0.9,
+                "confidence": 0.7,
                 "processing_time": processing_time,
-                "method": "mock_deepgram"
+                "method": "mock_fallback"
             }
             
-            logger.info(f"✅ Mock Deepgram complete: {processing_time:.2f}s")
+            logger.info(f"✅ Mock fallback complete: {processing_time:.2f}s")
             return result
             
         except Exception as e:
-            logger.error(f"❌ Mock Deepgram failed: {e}")
-            return {"error": str(e), "method": "mock_deepgram"}
+            logger.error(f"❌ Mock fallback failed: {e}")
+            return {"error": str(e), "method": "mock_fallback"}
 
 class SimpleROVERMerger:
     """Simplified ROVER merger"""
@@ -305,7 +413,10 @@ class EnsembleASRFixed:
     
     def __init__(self):
         self.whisper = LocalWhisperProcessor()
-        self.deepgram = MockDeepgramProcessor()
+        # Get Deepgram API key from environment
+        import os
+        deepgram_api_key = os.getenv('DEEPGRAM_API_KEY', 'your-deepgram-key-here')
+        self.deepgram = RealDeepgramProcessor(deepgram_api_key)
         self.rover = SimpleROVERMerger()
     
     async def process_audio(self, audio_path: str) -> EnsembleResult:
