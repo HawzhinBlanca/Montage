@@ -23,8 +23,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
     # Phase 0: Smoke test and validation
-    from phase0_purge_hardcoded import HardcodedLogicRemover, LibrarySmokeTest
-    
+        
     # Phase 1: AI Processing
     from phase1_asr_fixed import EnsembleASRFixed
     from phase1_2_local_highlight_scorer import LocalHighlightScorer

@@ -1,0 +1,25 @@
+{
+  "cleanup_date": "2025-07-18T18:24:33.493433",
+  "actions_taken": {
+    "hardcoded_files_removed": [
+      "tests/test_performance_requirements.py"
+    ],
+    "files_with_cleaned_imports": [
+      "adaptive_quality_pipeline_master.py",
+      "phase1_asr_fixed.py"
+    ],
+    "temporary_files_removed": [
+      "./__pycache__",
+      "./tests/__pycache__",
+      "cleanup_unused_imports.py",
+      "execute_cleanup.py"
+    ]
+  },
+  "backup_location": "cleanup_archives/",
+  "notes": [
+    "Removed files with hardcoded timestamps (60s, middle, end-120s)",
+    "Cleaned unused imports identified by Vulture",
+    "Preserved all AI/ML functionality modules",
+    "Kept phase*.py files as they implement the solution"
+  ]
+}
