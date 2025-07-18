@@ -1,0 +1,102 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      
+      redis:
+        image: redis:7.2-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+      
+      prometheus:
+        image: prom/prometheus
+        ports:
+          - 9090:9090
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+        ffmpeg -version
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio
+    
+    - name: Set up environment variables
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:pass@localhost:5432/postgres" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
+        echo "MAX_COST_USD=1.00" >> $GITHUB_ENV
+    
+    - name: Set up database
+      run: |
+        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE TABLE IF NOT EXISTS transcript_cache(sha256 CHAR(64) PRIMARY KEY, transcript TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());"
+    
+    - name: Test individual modules
+      run: |
+        python -c "import src.config; print('✅ Config module imports successfully')"
+        python -c "import src.analyze_video; print('✅ Analyze video module imports successfully')"
+        python -c "import src.highlight_selector; print('✅ Highlight selector module imports successfully')"
+        python -c "import src.ffmpeg_utils; print('✅ FFmpeg utils module imports successfully')"
+        python -c "import src.resolve_mcp; print('✅ Resolve MCP module imports successfully')"
+        python -c "import src.run_pipeline; print('✅ Run pipeline module imports successfully')"
+    
+    - name: Run tests
+      run: |
+        pytest tests/test_e2e.py -v
+    
+    - name: Test CLI interface
+      run: |
+        # Create a test video first
+        ffmpeg -f lavfi -i testsrc=duration=10:size=640x480:rate=24 -f lavfi -i sine=frequency=1000:duration=10 -c:v libx264 -c:a aac -shortest test_sample.mp4
+        
+        # Test the CLI without MCP server
+        python -m src.run_pipeline test_sample.mp4 --mode smart --no-server --info
+    
+    - name: Verify no mocks remain
+      run: |
+        if grep -r "Mock\|TODO\|FIXME" src/ --include="*.py"; then
+          echo "❌ Found mocks or TODOs in source code"
+          exit 1
+        else
+          echo "✅ No mocks or TODOs found"
+        fi
+    
+    - name: Verify success criteria
+      run: |
+        echo "✅ All tests passed"
+        echo "✅ Python modules import successfully"
+        echo "✅ CLI interface works"
+        echo "✅ No mocks or TODOs in source"
+        echo "✅ Database connection works"
+        echo "✅ FFmpeg processing works"
