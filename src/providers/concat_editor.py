@@ -7,7 +7,11 @@ import time
 from typing import List, Dict, Any, Tuple
 from dataclasses import dataclass
 import uuid
-from legacy_config import Config
+
+try:
+    from ..config import get
+except ImportError:
+    from src.config import get
 from .video_processor import FFmpegPipeline
 from ..core.metrics import metrics
 
@@ -44,8 +48,8 @@ class ConcatEditor:
     """Video editor using concat demuxer for efficient processing"""
 
     def __init__(self):
-        self.ffmpeg_path = Config.FFMPEG_PATH
-        self.temp_dir = Config.TEMP_DIR
+        self.ffmpeg_path = get("FFMPEG_PATH", "ffmpeg")
+        self.temp_dir = get("TEMP_DIR", "/tmp/montage")
         os.makedirs(self.temp_dir, exist_ok=True)
 
     def execute_edit(
@@ -119,7 +123,7 @@ class ConcatEditor:
             if "concat_list_path" in locals():
                 try:
                     os.unlink(concat_list_path)
-                except:
+                except Exception:
                     pass
 
     def _extract_segments_to_files(self, segments: List[EditSegment]) -> List[str]:
@@ -207,7 +211,7 @@ class ConcatEditor:
         logger.info("Concatenating segments without transitions...")
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             logger.debug("Concat completed successfully")
         except subprocess.CalledProcessError as e:
             logger.error(f"Concat failed: {e.stderr}")
@@ -274,7 +278,7 @@ class ConcatEditor:
         )
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             logger.debug("Transitions applied successfully")
         except subprocess.CalledProcessError as e:
             logger.error(f"Transition application failed: {e.stderr}")
@@ -336,7 +340,7 @@ class ConcatEditor:
             # Cleanup temp file
             try:
                 os.unlink(temp_concat)
-            except:
+            except Exception:
                 pass
 
     def _apply_fade_transitions(

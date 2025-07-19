@@ -130,6 +130,139 @@ class VideoProcessingPipeline:
             self._fail_job(job_id, str(e))
             raise
 
+    def execute_stage(
+        self, stage: str, job_id: str, context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Execute a single pipeline stage"""
+        stage_result = {}
+
+        if stage == "validation":
+            # Pre-flight checks
+            is_valid, reason = self.validator.validate_input(context["input_path"])
+            if not is_valid:
+                raise ValueError(f"Input validation failed: {reason}")
+
+            # Store video metadata
+            video_info = self.validator.get_video_info(context["input_path"])
+            self.db.update(
+                "video_job",
+                {"id": job_id},
+                {
+                    "duration": video_info.duration,
+                    "codec": video_info.codec,
+                    "color_space": video_info.color_space,
+                },
+            )
+            stage_result = {"status": "passed", "info": video_info}
+
+        elif stage == "analysis":
+            # Skip if we have edit plan
+            if context.get("edit_plan"):
+                logger.info("Skipping analysis - edit plan provided")
+                stage_result = {"status": "skipped"}
+            else:
+                # Analyze video content
+                highlights = analyze_video_content(
+                    job_id,
+                    context["input_path"],
+                    context["input_path"],  # Use same for audio
+                )
+                stage_result = {
+                    "status": "completed",
+                    "highlights_found": len(highlights),
+                }
+                # Save checkpoint
+                self.checkpoint_manager.save_checkpoint(
+                    job_id, "analysis", {"highlights": highlights}
+                )
+                context["highlights"] = highlights
+
+        elif stage == "highlights":
+            # Generate edit plan from highlights
+            if not context.get("edit_plan"):
+                highlights = context.get("highlights")
+                if not highlights:
+                    checkpoint = self.checkpoint_manager.load_checkpoint(job_id)
+                    if checkpoint and checkpoint["stage"] == "analysis":
+                        highlights = checkpoint["data"]["highlights"]
+                    else:
+                        # Re-analyze if needed
+                        highlights = analyze_video_content(
+                            job_id, context["input_path"], context["input_path"]
+                        )
+                # Convert to edit plan
+                context["edit_plan"] = self._highlights_to_edit_plan(
+                    highlights[:5]
+                )  # Top 5
+
+            stage_result = {
+                "status": "completed",
+                "segments": len(context["edit_plan"]["segments"]),
+            }
+
+        elif stage == "editing":
+            # Execute edit
+            if context["options"].get("smart_crop"):
+                # Apply smart cropping for vertical
+                temp_output = context["output_path"].replace(".mp4", "_temp.mp4")
+                self.editor.execute_edit(
+                    job_id, context["input_path"], context["edit_plan"], temp_output
+                )
+
+                crop_stats = apply_smart_crop(
+                    temp_output,
+                    context["output_path"],
+                    aspect_ratio=context["options"].get("aspect_ratio", "9:16"),
+                )
+                os.remove(temp_output)
+                stage_result["smart_crop"] = crop_stats
+            else:
+                # Regular edit
+                self.editor.execute_edit(
+                    job_id,
+                    context["input_path"],
+                    context["edit_plan"],
+                    context["output_path"],
+                )
+
+            stage_result["status"] = "completed"
+
+        elif stage == "encoding":
+            # Already handled in editing
+            stage_result = {"status": "completed"}
+
+        elif stage == "finalization":
+            # Verify output
+            if not os.path.exists(context["output_path"]):
+                raise ValueError("Output file not created")
+
+            output_info = self.validator.get_video_info(context["output_path"])
+            stage_result["output"] = {
+                "path": context["output_path"],
+                "duration": output_info.duration,
+                "size_mb": os.path.getsize(context["output_path"]) / (1024 * 1024),
+            }
+
+        return stage_result
+
+    def dispatch_stage(
+        self,
+        stages: List[str],
+        job_id: str,
+        context: Dict[str, Any],
+        result: Dict[str, Any],
+    ) -> None:
+        """Dispatch stages and handle checkpointing"""
+        for stage in stages:
+            logger.info(f"Executing stage: {stage}")
+
+            # Execute the stage
+            stage_result = self.execute_stage(stage, job_id, context)
+            result[stage] = stage_result
+
+            # Save checkpoint after each stage
+            self.checkpoint_manager.save_checkpoint(job_id, stage, result)
+
     def _execute_stages(
         self, job_id: str, job: Dict, start_stage: str
     ) -> Dict[str, Any]:
@@ -146,118 +279,19 @@ class VideoProcessingPipeline:
         # Find starting index
         start_index = stages.index(start_stage) if start_stage in stages else 0
 
-        input_path = job.get("input_path")
-        output_path = job.get("output_path")
+        # Build context
         metadata = json.loads(job.get("metadata", "{}"))
-        edit_plan = metadata.get("edit_plan")
-        options = metadata.get("options", {})
+        context = {
+            "input_path": job.get("input_path"),
+            "output_path": job.get("output_path"),
+            "edit_plan": metadata.get("edit_plan"),
+            "options": metadata.get("options", {}),
+        }
 
         result = {}
 
-        # Execute each stage
-        for stage in stages[start_index:]:
-            logger.info(f"Executing stage: {stage}")
-
-            if stage == "validation":
-                # Pre-flight checks
-                is_valid, reason = self.validator.validate_input(input_path)
-                if not is_valid:
-                    raise ValueError(f"Input validation failed: {reason}")
-
-                # Store video metadata
-                video_info = self.validator.get_video_info(input_path)
-                self.db.update(
-                    "video_job",
-                    {"id": job_id},
-                    {
-                        "duration": video_info.duration,
-                        "codec": video_info.codec,
-                        "color_space": video_info.color_space,
-                    },
-                )
-
-                result["validation"] = {"status": "passed", "info": video_info}
-
-            elif stage == "analysis":
-                # Skip if we have edit plan
-                if edit_plan:
-                    logger.info("Skipping analysis - edit plan provided")
-                    result["analysis"] = {"status": "skipped"}
-                else:
-                    # Analyze video content
-                    highlights = analyze_video_content(
-                        job_id, input_path, input_path  # Use same for audio
-                    )
-
-                    result["analysis"] = {
-                        "status": "completed",
-                        "highlights_found": len(highlights),
-                    }
-
-                    # Save checkpoint
-                    self.checkpoint_manager.save_checkpoint(
-                        job_id, "analysis", {"highlights": highlights}
-                    )
-
-            elif stage == "highlights":
-                # Generate edit plan from highlights
-                if not edit_plan:
-                    checkpoint = self.checkpoint_manager.load_checkpoint(job_id)
-                    if checkpoint and checkpoint["stage"] == "analysis":
-                        highlights = checkpoint["data"]["highlights"]
-                    else:
-                        # Re-analyze if needed
-                        highlights = analyze_video_content(
-                            job_id, input_path, input_path
-                        )
-
-                    # Convert to edit plan
-                    edit_plan = self._highlights_to_edit_plan(highlights[:5])  # Top 5
-
-                result["highlights"] = {
-                    "status": "completed",
-                    "segments": len(edit_plan["segments"]),
-                }
-
-            elif stage == "editing":
-                # Execute edit
-                if options.get("smart_crop"):
-                    # Apply smart cropping for vertical
-                    temp_output = output_path.replace(".mp4", "_temp.mp4")
-                    self.editor.execute_edit(job_id, input_path, edit_plan, temp_output)
-
-                    crop_stats = apply_smart_crop(
-                        temp_output,
-                        output_path,
-                        aspect_ratio=options.get("aspect_ratio", "9:16"),
-                    )
-
-                    os.remove(temp_output)
-                    result["smart_crop"] = crop_stats
-                else:
-                    # Regular edit
-                    self.editor.execute_edit(job_id, input_path, edit_plan, output_path)
-
-                result["editing"] = {"status": "completed"}
-
-            elif stage == "encoding":
-                # Already handled in editing
-                result["encoding"] = {"status": "completed"}
-
-            elif stage == "finalization":
-                # Verify output
-                if not os.path.exists(output_path):
-                    raise ValueError("Output file not created")
-
-                output_info = self.validator.get_video_info(output_path)
-                result["output"] = {
-                    "path": output_path,
-                    "duration": output_info.duration,
-                    "size_mb": os.path.getsize(output_path) / (1024 * 1024),
-                }
-
-            # Save checkpoint after each stage
-            self.checkpoint_manager.save_checkpoint(job_id, stage, result)
+        # Execute stages
+        self.dispatch_stage(stages[start_index:], job_id, context, result)
 
         # Clear checkpoints on success
         self.checkpoint_manager.clear_checkpoint(job_id)

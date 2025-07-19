@@ -185,26 +185,23 @@ class SmartTrack:
         full_result["segments"] = filtered_segments
         return full_result
 
-    def _analyze_motion(self, video_path: str) -> List[SmartSegment]:
+    def calc_optical_flow(
+        self, video_path: str, sample_interval: int = 10
+    ) -> List[Tuple[float, float]]:
         """
-        Detect high-motion segments
+        Calculate optical flow/motion scores for video frames
+        Returns list of (timestamp, motion_score) tuples
         """
-        logger.info("Analyzing motion...")
-        segments = []
-
+        motion_scores = []
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
 
         if not self.motion_detector:
             cap.release()
-            return segments
+            return motion_scores
 
         try:
-            motion_scores = []
             frame_count = 0
-
-            # Sample every 10th frame for speed
-            sample_interval = 10
 
             while True:
                 ret, frame = cap.read()
@@ -224,37 +221,60 @@ class SmartTrack:
 
                 frame_count += 1
 
-            # Find high-motion segments
-            if motion_scores:
-                motion_array = np.array([s[1] for s in motion_scores])
-                threshold = np.percentile(motion_array, 75)  # Top 25% motion
-
-                in_segment = False
-                segment_start = 0
-
-                for time_pos, score in motion_scores:
-                    if score > threshold and not in_segment:
-                        segment_start = time_pos
-                        in_segment = True
-                    elif score <= threshold and in_segment:
-                        if time_pos - segment_start >= self.min_segment_duration:
-                            segments.append(
-                                SmartSegment(
-                                    start_time=segment_start,
-                                    end_time=time_pos,
-                                    score=0.8,
-                                    features={
-                                        "motion_intensity": float(np.mean(motion_array))
-                                    },
-                                    segment_type="motion",
-                                )
-                            )
-                        in_segment = False
-
         except Exception as e:
-            logger.error(f"Motion analysis failed: {e}")
+            logger.error(f"Optical flow calculation failed: {e}")
         finally:
             cap.release()
+
+        return motion_scores
+
+    def classify_motion(
+        self, motion_scores: List[Tuple[float, float]], percentile: int = 75
+    ) -> List[SmartSegment]:
+        """
+        Classify motion scores into high-motion segments
+        """
+        segments = []
+
+        if not motion_scores:
+            return segments
+
+        motion_array = np.array([s[1] for s in motion_scores])
+        threshold = np.percentile(motion_array, percentile)  # Top motion percentile
+
+        in_segment = False
+        segment_start = 0
+
+        for time_pos, score in motion_scores:
+            if score > threshold and not in_segment:
+                segment_start = time_pos
+                in_segment = True
+            elif score <= threshold and in_segment:
+                if time_pos - segment_start >= self.min_segment_duration:
+                    segments.append(
+                        SmartSegment(
+                            start_time=segment_start,
+                            end_time=time_pos,
+                            score=0.8,
+                            features={"motion_intensity": float(np.mean(motion_array))},
+                            segment_type="motion",
+                        )
+                    )
+                in_segment = False
+
+        return segments
+
+    def _analyze_motion(self, video_path: str) -> List[SmartSegment]:
+        """
+        Detect high-motion segments
+        """
+        logger.info("Analyzing motion...")
+
+        # Step 1: Calculate optical flow
+        motion_scores = self.calc_optical_flow(video_path)
+
+        # Step 2: Classify into segments
+        segments = self.classify_motion(motion_scores)
 
         return segments
 
@@ -654,7 +674,6 @@ class SmartTrack:
                 if faces:
                     # Calculate average face position
                     avg_x = np.mean([f["x"] for f in faces])
-                    avg_y = np.mean([f["y"] for f in faces])
 
                     # Calculate crop to center on faces
                     # Assuming 1920x1080 -> 607x1080 crop

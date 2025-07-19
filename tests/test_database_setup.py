@@ -1,6 +1,14 @@
 import pytest
 import psycopg2
-from config import Config
+
+try:
+    from src.config import get
+except ImportError:
+    import sys
+    import os
+
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    from src.config import get
 
 
 class TestDatabaseSetup:
@@ -9,13 +17,22 @@ class TestDatabaseSetup:
     @pytest.fixture
     def db_connection(self):
         """Create a test database connection"""
-        conn = psycopg2.connect(
-            host=Config.POSTGRES_HOST,
-            port=Config.POSTGRES_PORT,
-            user=Config.POSTGRES_USER,
-            password=Config.POSTGRES_PASSWORD,
-            database=Config.POSTGRES_DB,
+        # Parse DATABASE_URL or use individual env vars
+        database_url = get(
+            "DATABASE_URL",
+            "postgresql://postgres:pass@localhost:5432/postgres",  # pragma: allowlist secret
         )
+
+        if database_url.startswith("postgresql://"):
+            conn = psycopg2.connect(database_url)
+        else:
+            conn = psycopg2.connect(
+                host=get("POSTGRES_HOST", "localhost"),
+                port=int(get("POSTGRES_PORT", "5432")),
+                user=get("POSTGRES_USER", "postgres"),
+                password=get("POSTGRES_PASSWORD", "password"),
+                database=get("POSTGRES_DB", "postgres"),
+            )
         yield conn
         conn.close()
 

@@ -3,7 +3,6 @@
 import pytest
 import os
 import tempfile
-import time
 import subprocess
 from unittest.mock import patch, MagicMock
 from video_processor import (
@@ -385,7 +384,6 @@ class TestIntegration:
         max_processing_time = video_duration * 1.2
 
         # Mock timing
-        start = time.time()
 
         # Simulate processing segments totaling 20 minutes
         segments = []

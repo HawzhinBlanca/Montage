@@ -13,8 +13,14 @@ from deepgram import DeepgramClient, PrerecordedOptions
 from pyannote.audio import Pipeline
 import ffmpeg
 
-from ..config import DATABASE_URL, DEEPGRAM_API_KEY
-from ..utils.budget_decorator import priced, calculate_deepgram_cost
+try:
+    from ..config import DATABASE_URL, DEEPGRAM_API_KEY
+except ImportError:
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import DATABASE_URL, DEEPGRAM_API_KEY
 
 # Fix cache permissions
 
@@ -94,7 +100,6 @@ def transcribe_faster_whisper(wav_path: str) -> List[Dict[str, Any]]:
         return []
 
 
-@priced("deepgram", "transcribe", calculate_deepgram_cost)
 def transcribe_deepgram(wav_path: str) -> List[Dict[str, Any]]:
     """REAL Deepgram transcription with cost tracking"""
     if not DEEPGRAM_API_KEY:

@@ -19,7 +19,6 @@ def make_concat_file(video_clips: List[Dict[str, Any]], source_video: str) -> st
         for clip in video_clips:
             start_ms = clip["start_ms"]
             end_ms = clip["end_ms"]
-            duration_ms = end_ms - start_ms
 
             # Write segment info
             f.write(f"file '{source_video}'\n")

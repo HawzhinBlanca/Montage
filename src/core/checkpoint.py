@@ -9,8 +9,17 @@ from datetime import datetime, timedelta
 import redis
 from redis.exceptions import RedisError
 from contextlib import contextmanager
-from legacy_config import Config
-from .db import Database
+
+try:
+    from ..config import REDIS_URL, get
+    from .db import Database
+except ImportError:
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import REDIS_URL, get
+    from core.db import Database
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +35,27 @@ class CheckpointManager:
 
     def __init__(self):
         try:
-            self.redis_client = redis.Redis(
-                host=Config.REDIS_HOST,
-                port=Config.REDIS_PORT,
-                db=Config.REDIS_DB,
-                decode_responses=False,  # We'll handle encoding/decoding
-                socket_connect_timeout=5,
-                socket_timeout=5,
-                retry_on_timeout=True,
-                health_check_interval=30,
-            )
+            # Use REDIS_URL if available, otherwise construct from individual values
+            if REDIS_URL:
+                self.redis_client = redis.from_url(
+                    REDIS_URL,
+                    decode_responses=False,  # We'll handle encoding/decoding
+                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                    retry_on_timeout=True,
+                    health_check_interval=30,
+                )
+            else:
+                self.redis_client = redis.Redis(
+                    host=get("REDIS_HOST", "localhost"),
+                    port=int(get("REDIS_PORT", "6379")),
+                    db=int(get("REDIS_DB", "0")),
+                    decode_responses=False,  # We'll handle encoding/decoding
+                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                    retry_on_timeout=True,
+                    health_check_interval=30,
+                )
             # Test connection
             self.redis_client.ping()
             logger.info("Redis checkpoint manager initialized")
@@ -70,12 +90,12 @@ class CheckpointManager:
 
             # Save to Redis with TTL
             key = self._get_checkpoint_key(job_id, stage)
-            self.redis_client.setex(key, Config.CHECKPOINT_TTL, serialized)
+            self.redis_client.setex(key, 3600, serialized)  # 1 hour TTL
 
             # Add stage to job's stage list
             stages_key = self._get_job_stages_key(job_id)
             self.redis_client.sadd(stages_key, stage)
-            self.redis_client.expire(stages_key, Config.CHECKPOINT_TTL)
+            self.redis_client.expire(stages_key, 3600)  # 1 hour TTL
 
             # Also save to PostgreSQL for backup
             self.db.insert(
@@ -264,7 +284,7 @@ class CheckpointManager:
         """Check Redis connection health"""
         try:
             return self.redis_client.ping()
-        except:
+        except Exception:
             return False
 
 
@@ -351,8 +371,7 @@ def example_usage():
     if editor_checkpoint.should_skip_stage(job_id, "analysis"):
         print("Skipping analysis stage - already completed")
         # Load previous results
-        data = editor_checkpoint.load_stage_data(job_id, "analysis")
-        segments_found = data["segments_found"]
+        _ = editor_checkpoint.load_stage_data(job_id, "analysis")
 
 
 if __name__ == "__main__":

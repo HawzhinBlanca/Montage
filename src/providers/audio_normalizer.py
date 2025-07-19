@@ -8,7 +8,11 @@ import tempfile
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 import re
-from config import Config
+
+try:
+    from ..config import get
+except ImportError:
+    from src.config import get
 from metrics import metrics, track_processing_stage
 from video_processor import FFmpegPipeline
 
@@ -60,8 +64,8 @@ class AudioNormalizer:
     """Two-pass audio normalization for consistent loudness"""
 
     def __init__(self):
-        self.ffmpeg_path = Config.FFMPEG_PATH
-        self.temp_dir = Config.TEMP_DIR
+        self.ffmpeg_path = get("FFMPEG_PATH", "ffmpeg")
+        self.temp_dir = get("TEMP_DIR", "/tmp/montage")
         os.makedirs(self.temp_dir, exist_ok=True)
 
     @track_processing_stage("audio_normalization")

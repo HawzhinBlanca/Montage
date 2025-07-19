@@ -245,9 +245,7 @@ class TestIntegrationFunctions:
             "output_primaries": "bt709",
         }
 
-        result = ensure_bt709_output(
-            "input.mp4", "output.mp4", preserve_filters="denoise"
-        )
+        ensure_bt709_output("input.mp4", "output.mp4", preserve_filters="denoise")
 
         # Verify validation was called
         mock_validate.assert_called_once_with("input.mp4")

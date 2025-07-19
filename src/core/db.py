@@ -2,12 +2,18 @@
 
 import re
 import logging
-import psycopg2
-from psycopg2 import extras
+from psycopg2 import extras, pool
 from contextlib import contextmanager
 from typing import List, Dict, Any, Optional, Tuple
 
-from legacy_config import Config
+try:
+    from ..config import DATABASE_URL
+except ImportError:
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +57,13 @@ class DatabasePool:
     def _init_pool(self):
         """Initialize connection pool"""
         try:
-            self.pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=Config.MIN_POOL_SIZE,
-                maxconn=Config.MAX_POOL_SIZE,
-                host=Config.POSTGRES_HOST,
-                port=Config.POSTGRES_PORT,
-                database=Config.POSTGRES_DB,
-                user=Config.POSTGRES_USER,
-                password=Config.POSTGRES_PASSWORD,
+            self.pool = pool.ThreadedConnectionPool(
+                minconn=1,
+                maxconn=10,
+                dsn=DATABASE_URL,
                 cursor_factory=extras.RealDictCursor,
             )
-            logger.info(
-                f"Database pool initialized: min={Config.MIN_POOL_SIZE}, max={Config.MAX_POOL_SIZE}"
-            )
+            logger.info("Database pool initialized: min=1, max=10")
         except Exception as e:
             logger.error(f"Failed to initialize database pool: {e}")
             raise DatabaseError(f"Database pool initialization failed: {e}")
@@ -102,14 +102,22 @@ class DatabasePool:
 
 
 # Global pool instance
-db_pool = DatabasePool()
+_db_pool = None
+
+
+def get_db_pool():
+    """Get or create the database pool instance"""
+    global _db_pool
+    if _db_pool is None:
+        _db_pool = DatabasePool()
+    return _db_pool
 
 
 class SecureDatabase:
     """High-level database operations with SQL injection prevention"""
 
     def __init__(self):
-        self.pool = db_pool
+        self.pool = get_db_pool()
 
     def execute(
         self, query: str, params: Optional[Tuple] = None, commit: bool = True
@@ -220,7 +228,7 @@ class SecureDatabase:
             raise ValueError(f"Invalid table name: {table}")
 
         query = f"SELECT * FROM {table}"
-        params = []
+        params: List[Any] = []
 
         if where:
             # Validate column names
@@ -305,3 +313,12 @@ class SecureDatabase:
 
 # Alias for backward compatibility
 Database = SecureDatabase
+
+
+# Create a proxy object for backward compatibility with db_pool
+class _DBPoolProxy:
+    def __getattr__(self, name):
+        return getattr(get_db_pool(), name)
+
+
+db_pool = _DBPoolProxy()

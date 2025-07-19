@@ -10,7 +10,11 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 import uuid
-from legacy_config import Config
+
+try:
+    from ..config import get
+except ImportError:
+    from src.config import get
 from ..core.metrics import metrics, track_ffmpeg_process_start, track_ffmpeg_process_end
 
 logger = logging.getLogger(__name__)
@@ -50,7 +54,7 @@ class FIFOManager:
     """Manages FIFO (named pipe) creation and cleanup"""
 
     def __init__(self, temp_dir: Optional[str] = None):
-        self.temp_dir = temp_dir or Config.TEMP_DIR
+        self.temp_dir = temp_dir or get("TEMP_DIR", "/tmp/montage")
         os.makedirs(self.temp_dir, exist_ok=True)
         self.fifos = []
         self._cleanup_registered = False
@@ -229,8 +233,8 @@ class VideoEditor:
     """High-performance video editor using FIFO pipelines"""
 
     def __init__(self):
-        self.ffmpeg_path = Config.FFMPEG_PATH
-        self.temp_dir = Config.TEMP_DIR
+        self.ffmpeg_path = get("FFMPEG_PATH", "ffmpeg")
+        self.temp_dir = get("TEMP_DIR", "/tmp/montage")
 
     def extract_segments_parallel(
         self, input_file: str, segments: List[VideoSegment]
@@ -303,7 +307,7 @@ class VideoEditor:
             ]
 
             # Start concatenation
-            concat_process = pipeline.add_process(cmd, "concatenate")
+            pipeline.add_process(cmd, "concatenate")
 
             # Wait for completion
             results = pipeline.wait_all(timeout=1800)  # 30 minute timeout
@@ -314,7 +318,7 @@ class VideoEditor:
             # Clean up concat list
             try:
                 os.unlink(concat_list)
-            except:
+            except Exception:
                 pass
 
     def _create_concat_list(self, fifos: List[str]) -> str:
@@ -458,7 +462,7 @@ class VideoEditor:
                 # Clean up temp file
                 try:
                     os.unlink(temp_output)
-                except:
+                except Exception:
                     pass
             else:
                 # Move temp to final output

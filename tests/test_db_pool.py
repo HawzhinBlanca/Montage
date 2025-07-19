@@ -8,7 +8,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import psycopg2
 import psycopg2.pool
 from src.core.db import Database, DatabasePool, get_db_pool, with_retry
-from legacy_config import Config
+
+try:
+    from src.config import get
+except ImportError:
+    import sys
+    import os
+
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+    from src.config import get
 
 
 class TestDatabasePool:
@@ -42,10 +50,14 @@ class TestDatabasePool:
     def test_pool_size_limits(self):
         """Test pool respects size configuration"""
         db_pool = get_db_pool()
-        assert db_pool.pool.minconn == Config.MIN_POOL_SIZE
-        assert db_pool.pool.maxconn == Config.MAX_POOL_SIZE
+        min_pool_size = int(get("MIN_POOL_SIZE", "2"))
+        max_pool_size = int(get("MAX_POOL_SIZE", "10"))
+        cpu_count = int(get("CPU_COUNT", "4"))
+
+        assert db_pool.pool.minconn == min_pool_size
+        assert db_pool.pool.maxconn == max_pool_size
         # Ensure max pool size is ~2x CPU cores as required
-        assert Config.MAX_POOL_SIZE <= Config.CPU_COUNT * 2 + 2  # Small buffer
+        assert max_pool_size <= cpu_count * 2 + 2  # Small buffer
 
     def test_basic_operations(self):
         """Test basic CRUD operations"""
@@ -190,12 +202,13 @@ class TestDatabasePool:
 
         try:
             # Try to acquire more connections than the pool size
-            for i in range(Config.MAX_POOL_SIZE + 2):
+            max_pool_size = int(get("MAX_POOL_SIZE", "10"))
+            for i in range(max_pool_size + 2):
                 db_pool = get_db_pool()
                 conn = db_pool.pool.getconn()
                 held_connections.append(conn)
 
-                if i < Config.MAX_POOL_SIZE:
+                if i < max_pool_size:
                     # Should succeed
                     assert conn is not None
         except psycopg2.pool.PoolError:

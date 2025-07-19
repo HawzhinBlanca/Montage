@@ -128,7 +128,7 @@ class TestCheckpointManager:
             with checkpoint_mgr.atomic_checkpoint(test_job_id, "test_failed"):
                 # Simulate failure
                 raise Exception("Simulated failure")
-        except:
+        except Exception:
             pass
 
         # Should not have saved checkpoint
@@ -317,15 +317,15 @@ class TestCheckpointIntegration:
         # Should handle gracefully and attempt reconnection
         try:
             # This should trigger reconnection
-            data = checkpoint_mgr.load_checkpoint(job_id, "test")
+            checkpoint_mgr.load_checkpoint(job_id, "test")
             # May or may not succeed depending on Redis state
-        except:
+        except Exception:
             # Expected if Redis is actually down
             pass
 
         # Health check should reflect status
-        health = checkpoint_mgr.health_check()
-        # Will be True if Redis is running, False otherwise
+        # Health check should reflect status
+        assert isinstance(checkpoint_mgr.health_check(), bool)
 
 
 if __name__ == "__main__":

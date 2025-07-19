@@ -92,7 +92,6 @@ class TestCheckpointRecovery:
         highlight_called = False
 
         original_analyze = new_editor.analyze_video
-        original_generate = new_editor.generate_highlights
 
         def mock_analyze(*args, **kwargs):
             nonlocal analysis_called

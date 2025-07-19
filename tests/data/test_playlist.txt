@@ -1,0 +1,15 @@
+# Test video playlist
+short.mp4
+medium.mp4
+long.mp4
+vertical.mp4
+square.mp4
+ultrawide.mp4
+lowres.mp4
+4k.mp4
+highfps.mp4
+lowfps.mp4
+silent.mp4
+highfreq_audio.mp4
+minimal.mp4
+odd_dimensions.mp4

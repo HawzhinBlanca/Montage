@@ -7,7 +7,11 @@ import os
 import hashlib
 from typing import Dict, Any, Optional, Tuple, List
 from dataclasses import dataclass
-from legacy_config import Config
+
+try:
+    from ..config import get
+except ImportError:
+    from src.config import get
 from ..core.db import Database
 
 logger = logging.getLogger(__name__)
@@ -55,7 +59,7 @@ class VideoValidator:
     """Validates video files and extracts metadata"""
 
     def __init__(self):
-        self.ffprobe_path = Config.FFPROBE_PATH
+        self.ffprobe_path = get("FFPROBE_PATH", "ffprobe")
         self.db = Database()
 
     def validate_file(
@@ -194,7 +198,7 @@ class VideoValidator:
             fps = (
                 float(fps_parts[0]) / float(fps_parts[1]) if len(fps_parts) == 2 else 0
             )
-        except:
+        except Exception:
             fps = 0
 
         # Get color space information
