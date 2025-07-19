@@ -3,8 +3,7 @@
 import pytest
 import os
 import tempfile
-from unittest.mock import Mock, patch, MagicMock, call
-import subprocess
+from unittest.mock import patch, MagicMock
 from concat_editor import (
     EditSegment,
     ConcatEditor,

@@ -4,13 +4,11 @@ import pytest
 import os
 import tempfile
 import json
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from video_validator import (
     VideoValidator,
     VideoMetadata,
-    VideoValidationError,
     CorruptedVideoError,
-    UnsupportedFormatError,
     perform_preflight_check
 )
 from db import Database

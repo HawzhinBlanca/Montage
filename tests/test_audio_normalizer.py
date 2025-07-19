@@ -1,10 +1,8 @@
 """Test two-pass audio normalization"""
 
 import pytest
-import json
 import tempfile
-import os
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 import subprocess
 from audio_normalizer import (
     AudioNormalizer,

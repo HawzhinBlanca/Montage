@@ -4,11 +4,9 @@ import pytest
 import time
 import uuid
 import json
-from unittest.mock import Mock, patch
 from checkpoint import (
     CheckpointManager, 
-    SmartVideoEditorCheckpoint,
-    CheckpointError
+    SmartVideoEditorCheckpoint
 )
 from db import Database
 

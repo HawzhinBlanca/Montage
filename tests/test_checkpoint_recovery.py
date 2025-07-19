@@ -2,7 +2,6 @@
 
 import pytest
 import time
-import json
 import uuid
 import tempfile
 import os

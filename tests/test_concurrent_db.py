@@ -1,7 +1,6 @@
 """Test concurrent database operations as per Task 2 acceptance criteria"""
 
 import pytest
-import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed

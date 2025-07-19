@@ -1,4 +1,5 @@
-import subprocess, json, pathlib
+import subprocess
+import json
 def test_vertical():
     out="tests/out.mp4"
     subprocess.run(["python","-m","src.run_pipeline",

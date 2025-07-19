@@ -111,7 +111,7 @@ def test_ffmpeg_utils():
         segment_info = get_video_info(output_path)
         assert segment_info["duration"] >= 1.8  # Should be ~2 seconds
         
-        print(f"✅ FFmpeg utils: segment extraction successful")
+        print("✅ FFmpeg utils: segment extraction successful")
         
     finally:
         if os.path.exists(output_path):

@@ -14,7 +14,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: pass
+          POSTGRES_PASSWORD: pass  # pragma: allowlist secret
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
@@ -53,34 +53,41 @@ jobs:
     
     - name: Set up environment variables
       run: |
-        echo "DATABASE_URL=postgresql://postgres:pass@localhost:5432/postgres" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:pass@localhost:5432/postgres" >> $GITHUB_ENV  # pragma: allowlist secret
         echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
         echo "MAX_COST_USD=1.00" >> $GITHUB_ENV
-        echo "OPENAI_API_KEY=test-key-for-ci" >> $GITHUB_ENV
-        echo "ANTHROPIC_API_KEY=test-key-for-ci" >> $GITHUB_ENV
-        echo "DEEPGRAM_API_KEY=test-key-for-ci" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=test-key-for-ci" >> $GITHUB_ENV  # pragma: allowlist secret
+        echo "ANTHROPIC_API_KEY=test-key-for-ci" >> $GITHUB_ENV  # pragma: allowlist secret
+        echo "DEEPGRAM_API_KEY=test-key-for-ci" >> $GITHUB_ENV  # pragma: allowlist secret
         echo "HF_HOME=/tmp/huggingface" >> $GITHUB_ENV
         echo "TRANSFORMERS_CACHE=/tmp/huggingface" >> $GITHUB_ENV
     
     - name: Set up database
       run: |
-        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
-        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE TABLE IF NOT EXISTS transcript_cache(sha256 CHAR(64) PRIMARY KEY, transcript TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());"
+        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"  # pragma: allowlist secret
+        PGPASSWORD=pass psql -h localhost -U postgres -c "CREATE TABLE IF NOT EXISTS transcript_cache(sha256 CHAR(64) PRIMARY KEY, transcript TEXT NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW());"  # pragma: allowlist secret
     
     - name: Test individual modules
       run: |
         python -c "import src.config; print('✅ Config module imports successfully')"
-        python -c "import src.analyze_video; print('✅ Analyze video module imports successfully')"
-        python -c "import src.highlight_selector; print('✅ Highlight selector module imports successfully')"
-        python -c "import src.ffmpeg_utils; print('✅ FFmpeg utils module imports successfully')"
-        python -c "import src.resolve_mcp; print('✅ Resolve MCP module imports successfully')"
-        python -c "import src.run_pipeline; print('✅ Run pipeline module imports successfully')"
-        python -c "import src.budget_decorator; print('✅ Budget decorator module imports successfully')"
-        python -c "from src.budget_decorator import get_budget_status; print('✅ Budget status:', get_budget_status())"
+        python -c "import src.core.analyze_video; print('✅ Analyze video module imports successfully')"
+        python -c "import src.core.highlight_selector; print('✅ Highlight selector module imports successfully')"
+        python -c "import src.utils.ffmpeg_utils; print('✅ FFmpeg utils module imports successfully')"
+        python -c "import src.providers.resolve_mcp; print('✅ Resolve MCP module imports successfully')"
+        python -c "import src.cli.run_pipeline; print('✅ Run pipeline module imports successfully')"
+        python -c "import src.utils.budget_decorator; print('✅ Budget decorator module imports successfully')"
+        python -c "from src.utils.budget_decorator import get_budget_status; print('✅ Budget status:', get_budget_status())"
     
     - name: Run tests
       run: |
         pytest tests/test_e2e.py -v
+    
+    - name: Secret scan
+      run: |
+        # Install gitleaks
+        wget -q https://github.com/zricethezav/gitleaks/releases/download/v8.18.1/gitleaks_8.18.1_linux_x64.tar.gz
+        tar -xzf gitleaks_8.18.1_linux_x64.tar.gz
+        ./gitleaks detect --no-git -v
     
     - name: Test CLI interface
       run: |
@@ -88,7 +95,7 @@ jobs:
         ffmpeg -f lavfi -i testsrc=duration=10:size=640x480:rate=24 -f lavfi -i sine=frequency=1000:duration=10 -c:v libx264 -c:a aac -shortest test_sample.mp4
         
         # Test the CLI without MCP server
-        python -m src.run_pipeline test_sample.mp4 --mode smart --no-server --info
+        python -m src.cli.run_pipeline test_sample.mp4 --mode smart --no-server --info
     
     - name: Verify no mocks remain
       run: |

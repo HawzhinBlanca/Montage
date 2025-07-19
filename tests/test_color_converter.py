@@ -2,8 +2,7 @@
 
 import pytest
 import json
-import subprocess
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from color_converter import (
     ColorSpaceConverter,
     ColorSpaceInfo,

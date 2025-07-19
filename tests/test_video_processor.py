@@ -5,14 +5,13 @@ import os
 import tempfile
 import time
 import subprocess
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from video_processor import (
     VideoSegment,
     FIFOManager,
     FFmpegPipeline,
     VideoEditor,
-    VideoProcessingError,
-    FFmpegError
+    VideoProcessingError
 )
 
 

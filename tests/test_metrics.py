@@ -4,7 +4,6 @@ import pytest
 import time
 import threading
 from unittest.mock import Mock, patch
-from prometheus_client import REGISTRY
 from metrics import (
     MetricsManager,
     metrics,

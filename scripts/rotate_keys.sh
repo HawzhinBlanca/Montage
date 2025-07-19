@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+echo "Rotate keys in provider consoles, then update AWS Secrets Manager:"
+echo ""
+echo "1. OpenAI: https://platform.openai.com/api-keys"
+echo "2. Anthropic: https://console.anthropic.com/account/keys"
+echo "3. Deepgram: https://console.deepgram.com/project/keys"
+echo "4. Google Gemini: https://makersuite.google.com/app/apikey"
+echo ""
+echo "After rotating, update AWS Secrets Manager:"
+echo "aws secretsmanager put-secret-value --secret-id montage/openai --secret-string 'NEW_KEY'"
+echo "aws secretsmanager put-secret-value --secret-id montage/anthropic --secret-string 'NEW_KEY'"
+echo "aws secretsmanager put-secret-value --secret-id montage/deepgram --secret-string 'NEW_KEY'"
+echo "aws secretsmanager put-secret-value --secret-id montage/gemini --secret-string 'NEW_KEY'"

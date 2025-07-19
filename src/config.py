@@ -1,44 +1,71 @@
 #!/usr/bin/env python3
 """
-Configuration module - Load env vars with explicit path
+Configuration module - Load configuration using secure secret management
 """
-import os
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Explicitly load .env from project root
-project_root = Path(__file__).parent.parent
-env_path = project_root / '.env'
+# Import secret loader
+try:
+    from .utils.secret_loader import (
+        get,
+        get_database_url,
+        get_redis_url,
+        get_openai_key,
+        get_anthropic_key,
+        get_deepgram_key,
+    )
+except ImportError:
+    # Fallback if running from different context
+    import sys
 
-print(f"Loading .env from: {env_path}")
-load_dotenv(env_path, override=True)  # Force override any existing env vars
+    sys.path.append(str(Path(__file__).parent))
+    from utils.secret_loader import (
+        get,
+        get_database_url,
+        get_redis_url,
+        get_openai_key,
+        get_anthropic_key,
+        get_deepgram_key,
+    )
+
+# Load .env for local development (secrets should come from AWS in production)
+project_root = Path(__file__).parent.parent
+env_path = project_root / ".env"
+if env_path.exists():
+    load_dotenv(env_path, override=False)  # Don't override AWS secrets
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:pass@localhost:5432/postgres")
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+DATABASE_URL = get_database_url()
+REDIS_URL = get_redis_url()
 
-# API keys
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+# API keys - loaded securely
+OPENAI_API_KEY = get_openai_key()
+ANTHROPIC_API_KEY = get_anthropic_key()
+DEEPGRAM_API_KEY = get_deepgram_key()
 
 # Cost limits
-MAX_COST_USD = float(os.getenv("MAX_COST_USD", "5.00"))
+MAX_COST_USD = float(get("MAX_COST_USD", "5.00"))
 
-# Debug: Show loaded keys (first 20 chars only)
+# Set up logger
+logger = logging.getLogger(__name__)
+
+# Log configuration status (without exposing secrets)
+
 if OPENAI_API_KEY:
-    print(f"✅ OpenAI key loaded: {OPENAI_API_KEY[:20]}...")
+    logger.info("✅ OpenAI API key configured")
 else:
-    print("⚠️  OPENAI_API_KEY not set - premium features will be disabled")
-    
-if ANTHROPIC_API_KEY:
-    print(f"✅ Anthropic key loaded: {ANTHROPIC_API_KEY[:20]}...")
-else:
-    print("⚠️  ANTHROPIC_API_KEY not set - premium features will be disabled")
-    
-if DEEPGRAM_API_KEY:
-    print(f"✅ Deepgram key loaded: {DEEPGRAM_API_KEY[:20]}...")
-else:
-    print("⚠️  DEEPGRAM_API_KEY not set - using only local ASR")
+    logger.warning("⚠️  OPENAI_API_KEY not set - premium features will be disabled")
 
-print(f"✅ Config loaded - MAX_COST_USD: ${MAX_COST_USD}")
+if ANTHROPIC_API_KEY:
+    logger.info("✅ Anthropic API key configured")
+else:
+    logger.warning("⚠️  ANTHROPIC_API_KEY not set - premium features will be disabled")
+
+if DEEPGRAM_API_KEY:
+    logger.info("✅ Deepgram API key configured")
+else:
+    logger.warning("⚠️  DEEPGRAM_API_KEY not set - using only local ASR")
+
+logger.info(f"✅ Config loaded - MAX_COST_USD: ${MAX_COST_USD}")

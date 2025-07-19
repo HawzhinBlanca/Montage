@@ -1,6 +1,5 @@
 import pytest
 import psycopg2
-import os
 from config import Config
 
 

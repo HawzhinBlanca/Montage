@@ -3,9 +3,10 @@
 import pytest
 import threading
 import time
-import uuid
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import psycopg2
+import psycopg2.pool
 from db import Database, DatabasePool, get_db_pool, with_retry
 from config import Config
 
