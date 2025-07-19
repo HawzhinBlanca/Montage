@@ -20,8 +20,8 @@ def get_audio_energy(video_path: str, start_time: float, duration: float) -> flo
         stream = ffmpeg.filter(stream, 'volumedetect')
         stream = ffmpeg.output(stream, '-', format='null')
         
-        result = ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
-        output = result.stderr.decode('utf-8')
+        out, err = ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
+        output = err.decode('utf-8')
         
         # Parse mean volume
         match = re.search(r'mean_volume:\s*(-?\d+\.?\d*)\s*dB', output)
@@ -178,8 +178,8 @@ Return JSON with format:
 
 Focus on: insights, discoveries, expert opinions, surprising facts, actionable advice."""
         
-        response = client.messages.create(
-            model="claude-3-sonnet-20240229",
+        response = client.messages.create(  # pylint: disable=no-member
+            model="claude-3-5-sonnet-20241022",  # Claude Sonnet 3.5 (latest)
             max_tokens=1000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -191,6 +191,8 @@ Focus on: insights, discoveries, expert opinions, surprising facts, actionable a
         print(f"✅ Claude analysis complete")
         return result
         
+    except anthropic.RateLimitError:
+        return []
     except Exception as e:
         print(f"❌ Claude analysis failed: {e}")
         return {"highlights": [], "cost": 0}
@@ -212,7 +214,7 @@ def analyze_with_gpt(text: str) -> Dict[str, Any]:
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o-mini",  # Using available mini model
             messages=[{
                 "role": "system",
                 "content": "You are a content analysis expert. Identify the most interesting highlights from transcripts."
@@ -317,16 +319,24 @@ def choose_highlights(words: List[Dict], audio_energy: List[float], mode: str = 
         
         # Analyze each chunk with AI
         ai_results = []
+        ai_failed = False
+        
         for chunk in chunks[:3]:  # Limit to 3 chunks to control cost
             
-            # Try Claude first, then GPT as fallback
-            claude_result = analyze_with_claude(chunk)
-            if claude_result["highlights"]:
-                ai_results.append(claude_result)
+            # Try GPT first (since it's working), then Claude as fallback
+            gpt_result = analyze_with_gpt(chunk)
+            if gpt_result["highlights"]:
+                ai_results.append(gpt_result)
             else:
-                gpt_result = analyze_with_gpt(chunk)
-                if gpt_result["highlights"]:
-                    ai_results.append(gpt_result)
+                # Try Claude as fallback
+                claude_result = analyze_with_claude(chunk)
+                if claude_result["highlights"]:
+                    ai_results.append(claude_result)
+                else:
+                    # Both AI services failed
+                    print("⚠️  Both AI services unavailable, using enhanced local scoring")
+                    ai_failed = True
+                    break
             
             # Stop if cost limit reached
             budget_status = get_budget_status()
@@ -334,7 +344,16 @@ def choose_highlights(words: List[Dict], audio_energy: List[float], mode: str = 
                 break
         
         # Merge AI insights with local scoring
-        enhanced_segments = merge_ai_with_local(local_segments, ai_results)
+        if ai_failed or not ai_results:
+            # Use enhanced local scoring when AI is unavailable
+            # Boost scores for segments with keywords
+            keywords = ["important", "key", "remember", "first", "second", "conclusion", "summary"]
+            for segment in local_segments:
+                keyword_boost = sum(1 for kw in keywords if kw in segment["text"].lower()) * 0.5
+                segment["score"] += keyword_boost
+            enhanced_segments = sorted(local_segments, key=lambda x: x["score"], reverse=True)
+        else:
+            enhanced_segments = merge_ai_with_local(local_segments, ai_results)
         
         # Select top segments
         top_segments = enhanced_segments[:8]  # Up to 8 for premium

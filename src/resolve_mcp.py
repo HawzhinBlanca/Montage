@@ -175,7 +175,7 @@ resolve_manager = ResolveManager()
 
 @app.route('/buildTimeline', method='POST')
 def build_timeline():
-    """Build timeline from clip data"""
+    """Build timeline from clip data with vertical 1080x1920 format"""
     try:
         data = request.json
         
@@ -186,10 +186,11 @@ def build_timeline():
         video_path = data.get("video_path")
         clips = data.get("clips", [])
         project_name = data.get("project_name", "MontageProject")
+        vertical_format = data.get("vertical_format", True)  # Default to vertical
         
         if not video_path or not clips:
-            response.status = 400
-            return {"error": "Missing video_path or clips"}
+            response.status = 422
+            return {"error": "Missing required fields: video_path and clips"}
         
         if RESOLVE_AVAILABLE and resolve_manager.connected:
             # Real DaVinci Resolve implementation
@@ -225,19 +226,21 @@ def build_timeline():
             }
         
         else:
-            # Fallback: Use FFmpeg for concatenation
+            # Fallback: Use FFmpeg for concatenation with vertical format
             from .ffmpeg_utils import concatenate_video_segments
             
             # Create output path
             output_path = f"/tmp/{project_name}_timeline.mp4"
             
-            # Concatenate clips
-            if concatenate_video_segments(clips, video_path, output_path):
+            # Concatenate clips with vertical format option
+            if concatenate_video_segments(clips, video_path, output_path, vertical_format=vertical_format):
                 return {
                     "success": True,
                     "project_name": project_name,
                     "output_path": output_path,
                     "clips_added": len(clips),
+                    "vertical_format": vertical_format,
+                    "resolution": "1080x1920" if vertical_format else "source",
                     "method": "ffmpeg_fallback"
                 }
             else:

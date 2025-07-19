@@ -48,7 +48,7 @@ def extract_video_segment(source_video: str, start_ms: int, end_ms: int, output_
         print(f"❌ Failed to extract segment: {e}")
         return False
 
-def concatenate_video_segments(video_clips: List[Dict[str, Any]], source_video: str, output_path: str) -> bool:
+def concatenate_video_segments(video_clips: List[Dict[str, Any]], source_video: str, output_path: str, vertical_format: bool = False) -> bool:
     """Concatenate multiple video segments into one video"""
     try:
         # Create temporary files for each segment
@@ -73,11 +73,22 @@ def concatenate_video_segments(video_clips: List[Dict[str, Any]], source_video: 
             for temp_file in temp_files:
                 f.write(f"file '{temp_file}'\n")
         
-        # Concatenate segments
-        cmd = [
-            'ffmpeg', '-f', 'concat', '-safe', '0', '-i', concat_file,
-            '-c', 'copy', '-y', output_path
-        ]
+        # Concatenate segments with optional vertical scaling
+        if vertical_format:
+            # Scale to vertical 1080x1920 format
+            cmd = [
+                'ffmpeg', '-f', 'concat', '-safe', '0', '-i', concat_file,
+                '-vf', "scale='min(1080,iw)':-2,fps=24,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black",
+                '-c:v', 'libx264', '-preset', 'fast', '-crf', '18',
+                '-c:a', 'aac', '-b:a', '192k',
+                '-y', output_path
+            ]
+        else:
+            # Standard concatenation
+            cmd = [
+                'ffmpeg', '-f', 'concat', '-safe', '0', '-i', concat_file,
+                '-c', 'copy', '-y', output_path
+            ]
         
         result = subprocess.run(cmd, capture_output=True, text=True)
         
