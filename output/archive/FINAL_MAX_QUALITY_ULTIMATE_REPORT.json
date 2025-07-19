@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-07-19 19:00:11",
+  "processing_time": 431.8495638370514,
+  "final_output": "/Users/hawzhin/Montage/output/FINAL_MAX_QUALITY_ULTIMATE_1080x1920_PROFESSIONAL.mp4",
+  "technical_specs": {
+    "resolution": "1080x1920",
+    "duration": 80.0,
+    "file_size_mb": 21.3,
+    "quality": "CRF 13 (ultimate)",
+    "preset": "placebo (maximum)",
+    "bitrate_kbps": 2234,
+    "format": "Perfect vertical 9:16",
+    "audio": "320kbps AAC broadcast normalized"
+  },
+  "professional_features": [
+    "CRF 13 ultimate video quality (placebo preset)",
+    "Perfect 1080x1920 vertical format (9:16)",
+    "Professional smooth transitions",
+    "BT.709 professional color grading",
+    "Broadcast audio normalization (-16 LUFS)",
+    "320kbps AAC audio mastering",
+    "Intelligent upscaling from 640x360",
+    "Professional padding and cropping"
+  ],
+  "quality_grade": "ULTIMATE_PROFESSIONAL_VERTICAL"
+}

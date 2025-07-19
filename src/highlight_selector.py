@@ -6,6 +6,7 @@ import json
 import re
 from typing import Dict, List, Any, Optional
 import openai
+import anthropic
 from anthropic import Anthropic
 import ffmpeg
 

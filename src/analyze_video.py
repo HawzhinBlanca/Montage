@@ -112,19 +112,25 @@ def transcribe_deepgram(wav_path: str) -> List[Dict[str, Any]]:
             utterances=True
         )
         
-        response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options)
+        # Use the new API method (rest instead of prerecorded)
+        response = deepgram.listen.rest.v("1").transcribe_file(payload, options)
         
         words = []
-        if "results" in response and "channels" in response["results"] and response["results"]["channels"]:
-            for result in response["results"]["channels"][0]["alternatives"]:
-                if "words" in result:
-                    for word in result["words"]:
-                        words.append({
-                            "word": word["word"],
-                            "start": word["start"],
-                            "end": word["end"],
-                            "confidence": word.get("confidence", 0.8)
-                        })
+        # Handle PrerecordedResponse object
+        if hasattr(response, 'results') and response.results:
+            channels = response.results.channels
+            if channels and len(channels) > 0:
+                channel = channels[0]
+                if channel.alternatives and len(channel.alternatives) > 0:
+                    alternative = channel.alternatives[0]
+                    if hasattr(alternative, 'words') and alternative.words:
+                        for word in alternative.words:
+                            words.append({
+                                "word": word.word,
+                                "start": word.start,
+                                "end": word.end,
+                                "confidence": word.confidence if hasattr(word, 'confidence') else 0.8
+                            })
         
         print(f"✅ Deepgram transcribed {len(words)} words")
         return words

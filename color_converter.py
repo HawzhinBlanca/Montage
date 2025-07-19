@@ -4,7 +4,7 @@ import logging
 import subprocess
 import json
 import os
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from dataclasses import dataclass
 from config import Config
 from metrics import metrics, track_processing_stage

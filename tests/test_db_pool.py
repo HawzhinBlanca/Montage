@@ -6,7 +6,7 @@ import time
 import uuid
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from db import Database, DatabasePool, db_pool, with_retry
+from db import Database, DatabasePool, get_db_pool, with_retry
 from config import Config
 
 
@@ -38,6 +38,7 @@ class TestDatabasePool:
     
     def test_pool_size_limits(self):
         """Test pool respects size configuration"""
+        db_pool = get_db_pool()
         assert db_pool.pool.minconn == Config.MIN_POOL_SIZE
         assert db_pool.pool.maxconn == Config.MAX_POOL_SIZE
         # Ensure max pool size is ~2x CPU cores as required
@@ -188,6 +189,7 @@ class TestDatabasePool:
         try:
             # Try to acquire more connections than the pool size
             for i in range(Config.MAX_POOL_SIZE + 2):
+                db_pool = get_db_pool()
                 conn = db_pool.pool.getconn()
                 held_connections.append(conn)
                 
@@ -200,7 +202,7 @@ class TestDatabasePool:
         finally:
             # Return all connections
             for conn in held_connections:
-                db_pool.pool.putconn(conn)
+                get_db_pool().pool.putconn(conn)
     
     def test_retry_mechanism(self):
         """Test retry mechanism for transient failures"""

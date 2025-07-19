@@ -1,93 +1,116 @@
-Your current engine is 25 × faster than real-time—but only because it skips every piece of real intelligence.
-Below is a dead-end-free plan that turns the codebase into a quality-first “Smart Track”, then adds an opt-in “Premium Track” that taps your paid Gemini 2.5 Flash, OpenAI GPT-4o and Claude Opus subscriptions.  The design keeps costs predictable, avoids GPU/RAM explosions, and removes every hard-coded timestamp or crop.
+#############################################################
+#  W E E K  1   S E C U R I T Y  &  R E F A C T O R  S P R I N T
+#############################################################
 
-⸻
+# 0. Safety pre-flight: stop if any uncommitted work
+- run: git diff --quiet || (echo "❌ Uncommitted changes" && exit 1)
 
-0 Remove the rot – purge hard-coded logic
+# 1. Strip secrets from history & working tree
+- run: |
+    pip install git-filter-repo detect-secrets
+    # scrub .env*. Remove any key-like patterns
+    git filter-repo --path .env --path .env.example --invert-paths --force
+    # commit placeholder
+    echo "OPENAI_API_KEY=<YOUR_KEY>" > .env.example
+    git add .env.example && git commit -m "chore(secrets): placeholder envs"
 
-Action	Why it matters
-Delete the three fixed timestamps and x=656 centre crop.	Hard-coded cuts lose 68 % of frame and kill narrative flow.
-Smoke-test libraries: faster-whisper, pyannote.audio, YuNet.	Whisper.cpp base-q loads in < 100 MB RAM and hits real-time 1 × speed  ￼; pyannote diarises 25 min audio in ~10 min on an A40  ￼; YuNet runs millisecond-level face detect on CPU  ￼ ￼.
+# 2. Rotate & externalise secrets
+- add_precommit_hook:
+    repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.1
+    hooks: [gitleaks]
 
-Definition of done: main pipeline is an empty shell + imports succeed.
+- write_file: scripts/rotate_keys.sh
+  mode: 755
+  content: |
+    #!/usr/bin/env bash
+    echo "Rotate keys in provider consoles, then update AWS Secrets Manager:"
+    # aws secretsmanager put-secret-value --secret-id montage/openai --secret-string ...
 
-⸻
+# 3. Introduce secret manager loader
+- create_python_module: src/utils/secret_loader.py
+  description: |
+    from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
+    def get(name: str): ...
 
-1 Build the AI brain (analysis only)
+- patch_file: src/providers/*  # swap os.getenv -> secret_loader.get
 
-1.1 Ensemble ASR + diarisation
-	1.	Whisper.cpp (base-q, local) → free, fast.
-	2.	Deepgram Nova-2 (cloud) → complementary error profile.
-	3.	ROVER merge to cut WER by 20-40 %  ￼ ￼.
-	4.	Align pyannote speaker turns to words.
+# 4. Enforce project structure
+- mkdir: [src/core, src/providers, src/utils, src/cli, scripts, config]
+- move_files:
+    patterns:
+      src/run_pipeline.py: src/cli/run_pipeline.py
+      src/analyze_video.py: src/core/analyze_video.py
+      src/highlight_selector.py: src/core/highlight_selector.py
+      src/ffmpeg_utils.py: src/utils/ffmpeg_utils.py
+      src/resolve_mcp.py: src/providers/resolve_mcp.py
 
-1.2 Local highlight scorer (Smart Track)
-	•	Token-free rule: score = complete-sentence (2 pt) + keyword (3 pt) + normalized audio RMS (0 – 2 pt).
-	•	Top 5 segments → JSON {slug,start_ms,end_ms}.
+# 5. Structured logging & Sentry
+- add_dependency: sentry-sdk==2.5.0
+- patch_file: src/core/__init__.py
+  - append: |
+      import logging, sentry_sdk, os
+      sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"), traces_sample_rate=0.1)
+      logging.basicConfig(
+          format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+          level=os.getenv("LOG_LEVEL","INFO"))
 
-1.3 Premium highlight scorer (Budget-capped)
-	•	Chunk transcript into < 8 k-token windows (GPT-4o max)  ￼.
-	•	Claude Opus with strict function-call schema returns ranked clips; decorator aborts if cost > $1.
+# 6. Custom exception hierarchy
+- create_python_module: src/core/errors.py
+  description: |
+    class MontageError(Exception): ...
+    class SecretError(MontageError): ...
+    class ValidationError(MontageError): ...
 
-1.4 Per-clip subtitles
+- refactor_exceptions:
+    root: src/
+    base: MontageError
 
-Slice the merged transcript → create .srt via Whisper word-timings (DigitalOcean guide)  ￼.
+# 7. Tests must pass database-less
+- write_file: tests/conftest.py
+  content: |
+    import pytest, os
+    @pytest.fixture(autouse=True, scope="session")
+    def env_defaults(monkeypatch):
+        monkeypatch.setenv("DATABASE_URL","sqlite:///:memory:")
+        monkeypatch.setenv("REDIS_URL","redis://localhost:6379/0")
 
-Output: one edit-plan.json + SRT files—no video touched yet.
+# 8. Pre-commit config (black, ruff, detect-secrets)
+- write_file: .pre-commit-config.yaml
+  content: |
+    repos:
+      - repo: https://github.com/psf/black
+        rev: 24.3.0
+        hooks: [{id: black}]
+      - repo: https://github.com/astral-sh/ruff-pre-commit
+        rev: v0.4.6
+        hooks: [{id: ruff}]
+      - repo: https://github.com/zricethezav/gitleaks
+        rev: v8.18.1
+        hooks: [{id: gitleaks}]
+      - repo: https://github.com/Yelp/detect-secrets
+        rev: v1.4.0
+        hooks: [{id: detect-secrets}]
 
-⸻
+# 9. CI update: add secret scan + logging test
+- update_github_actions:
+    workflow: ci
+    add_step_after: "Run tests"
+    new_step: |
+      - name: Secret scan
+        run: gitleaks detect --no-git -v
 
-2 Execution engine (DaVinci Resolve 20)
+# 10. Commit & push
+- git_commit:
+    branch: week1-security-refactor
+    message: |
+      feat(security,structure): secret purge, secret loader, logging,
+      new project layout, pre-commit hooks
 
-2.1 MCP bridge
-
-Bottle or FastAPI service on port 7801 with /buildTimeline, /renderProxy, /renderFinal.
-
-2.2 Intelligent timeline build
-	1.	IntelliScriptFromRanges(highlights)—auto assembly  ￼.
-	2.	DeleteSilence(padding=3)—tighten pacing.
-	3.	ApplySmartSwitch()—AI multicam.
-	4.	Import SRT → sub.Animate("PerWordPop") (AI subtitle engine).
-	5.	AudioAssistant("Dialogue_Social")—two-pass loudnorm under the hood  ￼ ￼.
-	6.	Crop logic:
-	•	If crop_zone == left|centre|right, call clip.SetCropPreset(zone);
-	•	else fall back to blurred letterbox.
-
-2.3 Colour & audio compliance
-	•	Insert zscale=matrix=bt709:transfer=bt709 if input not flagged BT.709  ￼ ￼.
-	•	Global loudnorm: scan whole mix once, apply values during final render  ￼.
-
-⸻
-
-3 QC, human gate & export
-
-Step	Tool
-Proxy render 540 p	Resolve /renderProxy.
-Automated QC	Gemini 2.5 Flash vision flags frozen frames/black gaps  ￼.
-Slack buttons	“Approve” → final render; “Redo” loops to /buildTimeline with diff.
-Final render	timeline.Render("Vertical_1080x1920_H265") → BT.709 verified with ffprobe.
-
-
-⸻
-
-4 Metrics & budget guardrails
-
-Metric	Instrumentation
-faces_lost_total	YuNet bbox ratio < 0.8 triggers ++
-sentences_cut_mid	Transcript parser counts clips starting mid-word
-cost_usd_total	@priced decorator wraps Deepgram & Claude calls
-proc_ratio	Wall / source duration via Prom histogram
-
-Grafana alerts on faces_lost_total > 0, cost_usd_total > \$1 (Smart) or $5 (Premium), proc_ratio > 1.5.
-
-⸻
-
-5 Why this path avoids dead ends
-	•	No fixed timestamps or crops – everything data-driven.
-	•	Local default (Whisper.cpp + rule scorer) produces good clips in ≈60 s at $0.
-	•	Premium path capped by cost decorator; falls back automatically—no sticker shock.
-	•	Concat demuxer avoids filter-graph length crash  ￼.
-	•	Two-pass loudnorm and explicit BT.709 stop QC rejections.
-	•	Redis checkpoints only on $/slow stages; SQLite gone; Postgres pool tuned to 2×CPU cores—avoids writer stalls  ￼.
-
-Follow this sequence—Phase 0 purge, Phase 1 brain, Phase 2 Resolve build, Phase 3 QC/metrics—and you’ll ship a pipeline that produces coherent, face-correct, captioned highlights with predictable cost, even if it’s not the fastest kid on the block.
+#############################################################
+#  G A T E S
+#  • `pytest -q` green
+#  • `gitleaks detect` returns 0
+#  • `ruff` + `black --check` clean
+#  • No file under src/ at repo root; matches new layout
+#############################################################
