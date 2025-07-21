@@ -47,6 +47,76 @@ jobs:
       - name: Run coverage
         run: bash scripts/coverage_all.sh
       
+      - name: Import smoke test
+        run: |
+          python - <<'PY'
+          import pkgutil
+          import importlib
+          import sys
+          import pathlib
+          
+          # Add src to path
+          sys.path.insert(0, 'src')
+          
+          # Find all modules
+          failed = []
+          for importer, modname, ispkg in pkgutil.walk_packages(['src']):
+              try:
+                  if modname.startswith('src.'):
+                      modname = modname[4:]  # Remove 'src.' prefix
+                  importlib.import_module(modname)
+                  print(f"✅ {modname}")
+              except Exception as e:
+                  print(f"❌ {modname}: {e}")
+                  failed.append(modname)
+          
+          if failed:
+              print(f"\n❌ {len(failed)} imports failed:")
+              for mod in failed:
+                  print(f"  - {mod}")
+              sys.exit(1)
+          else:
+              print(f"\n✅ All imports successful!")
+          PY
+      
+      - name: Budget metrics check
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'src')
+          
+          # Test budget enforcement
+          from core.cost import priced, get_current_cost, reset_cost, check_budget
+          from decimal import Decimal
+          
+          # Test basic functionality
+          reset_cost()
+          assert get_current_cost() == 0.0
+          
+          # Test budget check
+          can_afford, remaining = check_budget(1.0)
+          assert can_afford == True
+          assert remaining == 4.0  # $5 cap - $1
+          
+          # Test decorator
+          @priced("test.service", Decimal("2.50"))
+          def expensive_call(job_id="test"):
+              return "success"
+          
+          result = expensive_call()
+          assert result == "success"
+          assert get_current_cost() == 2.5
+          
+          # Test budget cap
+          try:
+              expensive_call()  # This should exceed $5 cap
+              assert False, "Should have raised budget error"
+          except RuntimeError as e:
+              assert "Budget cap" in str(e)
+          
+          print("✅ Budget tracking working correctly!")
+          PY
+      
       - name: Type checking
         run: mypy src/core
       

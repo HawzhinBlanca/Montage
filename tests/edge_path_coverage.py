@@ -27,10 +27,13 @@ from tests.test_postgres_fixture import PostgresTestFixture
 from src.core.db import Database
 from src.core.checkpoint import CheckpointManager
 from src.utils.video_validator import VideoValidator, VideoMetadata
-from src.utils.budget_guard import BudgetManager
-from src.utils.retry_utils import retry_with_backoff
-from src.providers.video_processor import SmartVideoEditor
-from src.providers.smart_crop import SmartCropper, apply_smart_crop
+from src.core.cost import BudgetManager
+from src.core.cost import retry_with_backoff
+from src.providers.video_processor import VideoEditor as SmartVideoEditor
+from src.utils.intelligent_crop import (
+    IntelligentCropper as SmartCropper,
+    create_intelligent_vertical_video as apply_smart_crop,
+)
 
 try:
     from src.config import get

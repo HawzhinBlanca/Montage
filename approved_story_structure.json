@@ -1,0 +1,325 @@
+{
+  "story_structure": {
+    "segments": [
+      {
+        "beat_type": "authority_establishment",
+        "text": "We  are  very,  very  excited  to  have  Professor  David  Sinclair,  a  well -renowned  geneticist,  and  certainly  in  my  mind,  and  most  people's  mind,  the  most  prominent  longevity  scientist  on  the  planet.",
+        "start_time": 11.14,
+        "end_time": 28.48,
+        "duration": 17.34,
+        "keyword_matches": [
+          "professor",
+          "david",
+          "sinclair",
+          "renowned",
+          "prominent"
+        ],
+        "score": 40,
+        "emotional_weight": 8,
+        "purpose": "Establish credibility - why should we listen?",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "revolutionary_claim",
+        "text": "It's  not  something  just  natural  and,  you  know,  God -given.  It's  something  that  is  causing  hundreds  of  thousands  of  people  to  die  every  day.  And  through  my  research  and  others  around  the  world,  we've  realized  that  this  thing  we  call  aging  has  a  process.",
+        "start_time": 102.34,
+        "end_time": 119.26,
+        "duration": 16.92,
+        "keyword_matches": [
+          "hundreds",
+          "thousands",
+          "die",
+          "every",
+          "day"
+        ],
+        "score": 45,
+        "emotional_weight": 9,
+        "purpose": "The shocking revelation that changes everything",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "adversity_revelation",
+        "text": "And  when  we're  in  abundance  mode,  our  bodies  don't  fight  aging.  The  genes  that  slow  aging,  that  we  study  and  others,  actually  turn  off.  And  so  what  you  really  want  to  do,  and  we  can  get  into  the  granular  part  of  it  in  a  minute,  all  of  the  things  that  I  do,  and  I  talk  about,  and  study  in  my  lab,  are  designed  to  turn  on  this  longevity  program.",
+        "start_time": 238.18,
+        "end_time": 261.3,
+        "duration": 23.120000000000005,
+        "keyword_matches": [
+          "mode",
+          "abundance",
+          "genes",
+          "turn",
+          "off"
+        ],
+        "score": 40,
+        "emotional_weight": 8,
+        "purpose": "The counterintuitive truth about health",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "personal_transformation",
+        "text": "Your  own  biological  age  has  it  changed  since  you  have  begun  to  really  focus  on  personal  longevity  practice  and  where  was  it  and  where  is  it?  Yeah,  well,  I  used  to  be  older  than  my  birthdays  when  I  started.",
+        "start_time": 1132.64,
+        "end_time": 1148.46,
+        "duration": 15.819999999999936,
+        "keyword_matches": [
+          "used",
+          "older",
+          "birthdays"
+        ],
+        "score": 24,
+        "emotional_weight": 8,
+        "purpose": "Proof it works - visual transformation",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "father_proof",
+        "text": "But  generally  I  share  what  I  do  the  basics  and  what  my  father  does  who's...  He's  still  85  and  without  any  disease  or  ailment  and  going  strong.",
+        "start_time": 1976.8,
+        "end_time": 1985.68,
+        "duration": 8.88000000000011,
+        "keyword_matches": [
+          "father",
+          "85",
+          "disease",
+          "ailment"
+        ],
+        "score": 36,
+        "emotional_weight": 9,
+        "purpose": "Living example of successful aging",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "father_proof",
+        "text": "He's  still  85  and  without  any  disease  or  ailment  and  going  strong.  He's  really  the  role  model.  Yes,  he's  the  guy.",
+        "start_time": 1981.54,
+        "end_time": 1989.94,
+        "duration": 8.400000000000091,
+        "keyword_matches": [
+          "85",
+          "disease",
+          "ailment"
+        ],
+        "score": 27,
+        "emotional_weight": 9,
+        "purpose": "Living example of successful aging",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "future_breakthrough",
+        "text": "We  are  chasing  the  goal  of  one  day  having  a  pill  that  can  reverse  aging.  So  you  take  that  pill  for  a  few  months  every  decade  and  you  go  back,  you  get  reset.  And  by  the  way,  that  is  not  crazy  talk.",
+        "start_time": 2237.88,
+        "end_time": 2251.28,
+        "duration": 13.400000000000091,
+        "keyword_matches": [
+          "pill",
+          "reverse",
+          "aging",
+          "reset",
+          "decade"
+        ],
+        "score": 50,
+        "emotional_weight": 10,
+        "purpose": "The incredible future that's almost here",
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "beat_type": "father_proof",
+        "text": "If  you  look  at  my  father  though,  85,  he's  having  the  best  time  of  his  life.  He  has  no  aches  or  pains  and  is  traveling  the  world  and  goes  out  every  night,  and  that's  what  I  want  for  every  85 -year -old.",
+        "start_time": 2371.8199999999997,
+        "end_time": 2382.68,
+        "duration": 10.860000000000127,
+        "keyword_matches": [
+          "father",
+          "85",
+          "best",
+          "time",
+          "life",
+          "traveling"
+        ],
+        "score": 54,
+        "emotional_weight": 9,
+        "purpose": "Living example of successful aging",
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "total_duration": 114.74000000000036,
+    "story_flow": [
+      "authority_establishment",
+      "revolutionary_claim",
+      "adversity_revelation",
+      "personal_transformation",
+      "father_proof",
+      "father_proof",
+      "future_breakthrough",
+      "father_proof"
+    ],
+    "emotional_arc": [
+      8,
+      9,
+      8,
+      8,
+      9,
+      9,
+      10,
+      9
+    ]
+  },
+  "quality_analysis": {
+    "rating": 9,
+    "quality": "EXCEPTIONAL - Ready for professional production",
+    "beat_diversity": 6,
+    "emotional_range": 2,
+    "duration_balance": 14.342500000000046,
+    "has_essential_elements": {
+      "hook": true,
+      "transformation": true,
+      "solution": true,
+      "future": true
+    },
+    "issues": [],
+    "recommendations": []
+  },
+  "creative_director_approval": true,
+  "approved_segments": [
+    {
+      "beat_type": "authority_establishment",
+      "text": "We  are  very,  very  excited  to  have  Professor  David  Sinclair,  a  well -renowned  geneticist,  and  certainly  in  my  mind,  and  most  people's  mind,  the  most  prominent  longevity  scientist  on  the  planet.",
+      "start_time": 11.14,
+      "end_time": 28.48,
+      "duration": 17.34,
+      "keyword_matches": [
+        "professor",
+        "david",
+        "sinclair",
+        "renowned",
+        "prominent"
+      ],
+      "score": 40,
+      "emotional_weight": 8,
+      "purpose": "Establish credibility - why should we listen?",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "revolutionary_claim",
+      "text": "It's  not  something  just  natural  and,  you  know,  God -given.  It's  something  that  is  causing  hundreds  of  thousands  of  people  to  die  every  day.  And  through  my  research  and  others  around  the  world,  we've  realized  that  this  thing  we  call  aging  has  a  process.",
+      "start_time": 102.34,
+      "end_time": 119.26,
+      "duration": 16.92,
+      "keyword_matches": [
+        "hundreds",
+        "thousands",
+        "die",
+        "every",
+        "day"
+      ],
+      "score": 45,
+      "emotional_weight": 9,
+      "purpose": "The shocking revelation that changes everything",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "adversity_revelation",
+      "text": "And  when  we're  in  abundance  mode,  our  bodies  don't  fight  aging.  The  genes  that  slow  aging,  that  we  study  and  others,  actually  turn  off.  And  so  what  you  really  want  to  do,  and  we  can  get  into  the  granular  part  of  it  in  a  minute,  all  of  the  things  that  I  do,  and  I  talk  about,  and  study  in  my  lab,  are  designed  to  turn  on  this  longevity  program.",
+      "start_time": 238.18,
+      "end_time": 261.3,
+      "duration": 23.120000000000005,
+      "keyword_matches": [
+        "mode",
+        "abundance",
+        "genes",
+        "turn",
+        "off"
+      ],
+      "score": 40,
+      "emotional_weight": 8,
+      "purpose": "The counterintuitive truth about health",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "personal_transformation",
+      "text": "Your  own  biological  age  has  it  changed  since  you  have  begun  to  really  focus  on  personal  longevity  practice  and  where  was  it  and  where  is  it?  Yeah,  well,  I  used  to  be  older  than  my  birthdays  when  I  started.",
+      "start_time": 1132.64,
+      "end_time": 1148.46,
+      "duration": 15.819999999999936,
+      "keyword_matches": [
+        "used",
+        "older",
+        "birthdays"
+      ],
+      "score": 24,
+      "emotional_weight": 8,
+      "purpose": "Proof it works - visual transformation",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "father_proof",
+      "text": "But  generally  I  share  what  I  do  the  basics  and  what  my  father  does  who's...  He's  still  85  and  without  any  disease  or  ailment  and  going  strong.",
+      "start_time": 1976.8,
+      "end_time": 1985.68,
+      "duration": 8.88000000000011,
+      "keyword_matches": [
+        "father",
+        "85",
+        "disease",
+        "ailment"
+      ],
+      "score": 36,
+      "emotional_weight": 9,
+      "purpose": "Living example of successful aging",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "father_proof",
+      "text": "He's  still  85  and  without  any  disease  or  ailment  and  going  strong.  He's  really  the  role  model.  Yes,  he's  the  guy.",
+      "start_time": 1981.54,
+      "end_time": 1989.94,
+      "duration": 8.400000000000091,
+      "keyword_matches": [
+        "85",
+        "disease",
+        "ailment"
+      ],
+      "score": 27,
+      "emotional_weight": 9,
+      "purpose": "Living example of successful aging",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "future_breakthrough",
+      "text": "We  are  chasing  the  goal  of  one  day  having  a  pill  that  can  reverse  aging.  So  you  take  that  pill  for  a  few  months  every  decade  and  you  go  back,  you  get  reset.  And  by  the  way,  that  is  not  crazy  talk.",
+      "start_time": 2237.88,
+      "end_time": 2251.28,
+      "duration": 13.400000000000091,
+      "keyword_matches": [
+        "pill",
+        "reverse",
+        "aging",
+        "reset",
+        "decade"
+      ],
+      "score": 50,
+      "emotional_weight": 10,
+      "purpose": "The incredible future that's almost here",
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "beat_type": "father_proof",
+      "text": "If  you  look  at  my  father  though,  85,  he's  having  the  best  time  of  his  life.  He  has  no  aches  or  pains  and  is  traveling  the  world  and  goes  out  every  night,  and  that's  what  I  want  for  every  85 -year -old.",
+      "start_time": 2371.8199999999997,
+      "end_time": 2382.68,
+      "duration": 10.860000000000127,
+      "keyword_matches": [
+        "father",
+        "85",
+        "best",
+        "time",
+        "life",
+        "traveling"
+      ],
+      "score": 54,
+      "emotional_weight": 9,
+      "purpose": "Living example of successful aging",
+      "speaker": "SPEAKER_01"
+    }
+  ]
+}

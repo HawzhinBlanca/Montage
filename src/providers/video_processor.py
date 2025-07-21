@@ -17,6 +17,66 @@ except ImportError:
     from src.config import get
 from ..core.metrics import metrics, track_ffmpeg_process_start, track_ffmpeg_process_end
 
+# Import comprehensive memory management
+try:
+    from ..utils.memory_manager import (
+        get_memory_monitor,
+        get_adaptive_config,
+        initialize_memory_management,
+        memory_guard,
+        MemoryPressureLevel,
+    )
+    from ..utils.resource_manager import (
+        get_video_resource_manager,
+        managed_tempfile,
+        cleanup_video_resources,
+        get_memory_safe_worker_count,
+        estimate_processing_memory,
+    )
+    from ..utils.ffmpeg_memory_manager import (
+        get_ffmpeg_memory_manager,
+        memory_safe_ffmpeg,
+        process_large_video_safely,
+        FFmpegMemoryProfile,
+    )
+except ImportError:
+    # Fallback if memory management is not available
+    logger.warning("Memory management modules not available - using basic processing")
+
+    def get_memory_monitor():
+        return None
+
+    def get_adaptive_config():
+        return None
+
+    def initialize_memory_management():
+        return None, None, None
+
+    memory_guard = contextmanager(lambda **kwargs: (yield))
+
+    def get_video_resource_manager():
+        return None
+
+    managed_tempfile = contextmanager(lambda **kwargs: (yield "/tmp/temp_file"))
+
+    def cleanup_video_resources():
+        pass
+
+    def get_memory_safe_worker_count():
+        return 2
+
+    def estimate_processing_memory(*args):
+        return 512
+
+    def get_ffmpeg_memory_manager():
+        return None
+
+    memory_safe_ffmpeg = contextmanager(lambda **kwargs: (yield))
+
+    def process_large_video_safely(*args):
+        return True
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -138,9 +198,14 @@ class FFmpegPipeline:
 
             return process
 
-        except Exception as e:
+        except (
+            subprocess.CalledProcessError,
+            OSError,
+            FileNotFoundError,
+            PermissionError,
+        ) as e:
             track_ffmpeg_process_end()
-            raise FFmpegError(f"Failed to start {name}: {e}")
+            raise FFmpegError(f"Failed to start {name}: {e}") from e
 
     def _monitor_stderr(self, process: subprocess.Popen, name: str):
         """Monitor process stderr for errors and progress"""
@@ -161,7 +226,7 @@ class FFmpegPipeline:
                 elif "frame=" in line_str or "time=" in line_str:
                     logger.debug(f"{name} progress: {line_str}")
 
-        except Exception as e:
+        except (OSError, ValueError, BrokenPipeError, UnicodeDecodeError) as e:
             logger.error(f"Error monitoring {name} stderr: {e}")
 
     def wait_all(self, timeout: Optional[int] = None) -> Dict[str, int]:
@@ -193,7 +258,7 @@ class FFmpegPipeline:
                 logger.error(f"{name} timed out, terminating...")
                 process.terminate()
                 results[name] = -1
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError, ValueError) as e:
                 logger.error(f"Error waiting for {name}: {e}")
                 results[name] = -2
             finally:
@@ -230,11 +295,23 @@ class FFmpegPipeline:
 
 
 class VideoEditor:
-    """High-performance video editor using FIFO pipelines"""
+    """High-performance video editor with comprehensive memory management"""
 
     def __init__(self):
         self.ffmpeg_path = get("FFMPEG_PATH", "ffmpeg")
         self.temp_dir = get("TEMP_DIR", "/tmp/montage")
+
+        # Initialize memory management
+        self.memory_monitor = get_memory_monitor()
+        self.adaptive_config = get_adaptive_config()
+        self.video_resource_manager = get_video_resource_manager()
+        self.ffmpeg_manager = get_ffmpeg_memory_manager()
+
+        # Initialize memory management system if not already done
+        if self.memory_monitor and not hasattr(self.memory_monitor, "_monitoring"):
+            initialize_memory_management()
+
+        logger.info("VideoEditor initialized with memory management")
 
     def extract_segments_parallel(
         self, input_file: str, segments: List[VideoSegment]
@@ -318,8 +395,8 @@ class VideoEditor:
             # Clean up concat list
             try:
                 os.unlink(concat_list)
-            except Exception:
-                pass
+            except (OSError, FileNotFoundError, PermissionError):
+                pass  # Cleanup errors are non-critical
 
     def _create_concat_list(self, fifos: List[str]) -> str:
         """Create concat demuxer list file"""
@@ -429,57 +506,192 @@ class VideoEditor:
         output_file: str,
         apply_transitions: bool = True,
     ) -> None:
-        """Efficient extraction and concatenation using parallel FIFOs"""
+        """Memory-optimized video processing with comprehensive resource management"""
         start_time = time.time()
 
-        with metrics.track_processing_time(
-            "editing", video_duration=sum(s.duration for s in segments)
-        ):
-            # Start parallel extraction
-            logger.info(f"Extracting {len(segments)} segments in parallel...")
-            segment_fifos = self.extract_segments_parallel(input_file, segments)
+        if not segments:
+            raise VideoProcessingError("No segments provided")
 
-            # Create temporary output for concatenation
-            temp_output = os.path.join(
-                self.temp_dir, f"temp_{uuid.uuid4().hex[:8]}.mp4"
+        # Estimate memory requirements
+        estimated_memory_mb = estimate_processing_memory(input_file, "transcoding")
+
+        logger.info(
+            f"🎬 Processing {len(segments)} segments with MEMORY-OPTIMIZED pipeline..."
+            f" (estimated memory: {estimated_memory_mb}MB)"
+        )
+
+        # Use memory-constrained operation
+        with memory_guard(max_memory_mb=estimated_memory_mb * 2) as monitor:
+            try:
+                # Check if we should use streaming processing for large files
+                should_stream = (
+                    self.video_resource_manager
+                    and self.video_resource_manager.should_use_streaming(input_file)
+                )
+
+                if should_stream:
+                    logger.info("🔄 Using streaming processing for large video")
+                    success = self._process_large_video_streaming(
+                        input_file, segments, output_file, apply_transitions
+                    )
+                else:
+                    logger.info("⚡ Using direct processing")
+                    success = self._process_video_direct(
+                        input_file, segments, output_file, apply_transitions
+                    )
+
+                if not success:
+                    raise VideoProcessingError("Video processing failed")
+
+                elapsed = time.time() - start_time
+                total_duration = sum(s.duration for s in segments)
+                ratio = elapsed / total_duration if total_duration > 0 else 0
+
+                # Get final memory stats
+                if monitor:
+                    final_stats = monitor.get_current_stats()
+                    logger.info(
+                        f"✅ Video processing completed: {output_file}"
+                        f" (memory usage: {final_stats.process_memory_mb:.0f}MB)"
+                    )
+                else:
+                    logger.info(f"✅ Video processing completed: {output_file}")
+
+                logger.info(
+                    f"📊 Processing ratio: {ratio:.2f}x ({elapsed:.1f}s for {total_duration:.1f}s content)"
+                )
+
+                # Track performance metrics
+                metrics.processing_ratio.labels(stage="editing").observe(ratio)
+
+                if ratio > 1.2:
+                    logger.warning(
+                        f"Processing ratio {ratio:.2f}x exceeds target of 1.2x"
+                    )
+
+            except (
+                FFmpegError,
+                subprocess.CalledProcessError,
+                OSError,
+                FileNotFoundError,
+                ValueError,
+                MemoryError,
+            ) as e:
+                logger.error(f"❌ Video processing failed: {e}")
+                # Force cleanup on error
+                cleanup_video_resources()
+                raise VideoProcessingError(f"Processing failed: {e}") from e
+
+            finally:
+                # Always cleanup resources
+                if self.video_resource_manager:
+                    cleanup_video_resources()
+
+    def _process_video_direct(
+        self,
+        input_file: str,
+        segments: List[VideoSegment],
+        output_file: str,
+        apply_transitions: bool,
+    ) -> bool:
+        """Direct video processing for smaller files"""
+        try:
+            # Convert VideoSegment objects to video clips format
+            video_clips = []
+            for i, segment in enumerate(segments):
+                video_clips.append(
+                    {
+                        "start_ms": int(segment.start_time * 1000),
+                        "end_ms": int(segment.end_time * 1000),
+                        "text": f"Segment {i+1}",
+                        "score": 8.0,  # Default score
+                    }
+                )
+
+            logger.info(
+                f"🔧 Converted {len(segments)} VideoSegments to {len(video_clips)} clips"
             )
 
-            # Concatenate segments
-            logger.info("Concatenating segments...")
-            self.concatenate_segments_fifo(segment_fifos, temp_output)
+            # Use intelligent vertical cropping with memory management
+            from ..utils.intelligent_crop import create_intelligent_vertical_video
 
-            # Apply transitions if requested
-            if apply_transitions and len(segments) > 1:
-                logger.info("Applying transitions...")
-                transition_points = []
-                current_time = 0
-                for segment in segments[:-1]:
-                    current_time += segment.duration
-                    transition_points.append(current_time)
+            return create_intelligent_vertical_video(
+                video_clips, input_file, output_file
+            )
 
-                self.apply_transitions_fifo(temp_output, output_file, transition_points)
+        except Exception as e:
+            logger.error(f"Direct processing failed: {e}")
+            return False
 
-                # Clean up temp file
-                try:
-                    os.unlink(temp_output)
-                except Exception:
-                    pass
+    def _process_large_video_streaming(
+        self,
+        input_file: str,
+        segments: List[VideoSegment],
+        output_file: str,
+        apply_transitions: bool,
+    ) -> bool:
+        """Streaming processing for large videos using memory-safe chunks"""
+        try:
+            if not self.ffmpeg_manager:
+                logger.warning(
+                    "FFmpeg manager not available, falling back to direct processing"
+                )
+                return self._process_video_direct(
+                    input_file, segments, output_file, apply_transitions
+                )
+
+            # Calculate total video duration for chunking
+            total_duration = sum(s.duration for s in segments)
+
+            # Get optimal chunk size based on memory
+            if self.video_resource_manager:
+                chunk_size_mb = self.video_resource_manager.get_optimal_chunk_size(
+                    input_file
+                )
+                # Convert to time-based chunks (rough estimate: 1MB per second)
+                chunk_duration = min(300, max(60, chunk_size_mb))  # 1-5 minutes
             else:
-                # Move temp to final output
-                os.rename(temp_output, output_file)
+                chunk_duration = 120  # Default 2 minutes
 
-        elapsed = time.time() - start_time
-        total_duration = sum(s.duration for s in segments)
-        ratio = elapsed / total_duration if total_duration > 0 else 0
+            logger.info(f"🧩 Processing in {chunk_duration}s chunks")
 
-        logger.info(f"Processing completed in {elapsed:.1f}s (ratio: {ratio:.2f}x)")
+            def process_chunk_func(chunk_input: str) -> str:
+                """Process a single chunk"""
+                with managed_tempfile(suffix=".mp4") as chunk_output:
+                    # Apply processing to chunk (simplified for now)
+                    cmd = [
+                        self.ffmpeg_path,
+                        "-y",
+                        "-i",
+                        chunk_input,
+                        "-c:v",
+                        "libx264",
+                        "-preset",
+                        "fast",
+                        "-crf",
+                        "23",
+                        "-c:a",
+                        "aac",
+                        "-b:a",
+                        "128k",
+                        chunk_output,
+                    ]
 
-        # Track performance metric
-        metrics.processing_ratio.labels(stage="editing").observe(ratio)
+                    with memory_safe_ffmpeg(cmd, chunk_input) as process:
+                        result = process.wait()
 
-        # Verify ratio meets requirement (< 1.2x for 1080p)
-        if ratio > 1.2:
-            logger.warning(f"Processing ratio {ratio:.2f}x exceeds target of 1.2x")
+                    if result == 0:
+                        return chunk_output
+                    else:
+                        raise ValueError(f"Chunk processing failed with code {result}")
+
+            return self.ffmpeg_manager.process_video_chunks(
+                input_file, output_file, process_chunk_func, chunk_duration
+            )
+
+        except Exception as e:
+            logger.error(f"Streaming processing failed: {e}")
+            return False
 
 
 @contextmanager

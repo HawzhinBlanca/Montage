@@ -11,8 +11,15 @@ from dataclasses import dataclass
 try:
     from ..config import get
 except ImportError:
-    from src.config import get
-from ..core.db import Database
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import get
+try:
+    from ..core.db import Database
+except ImportError:
+    from core.db import Database
 
 logger = logging.getLogger(__name__)
 

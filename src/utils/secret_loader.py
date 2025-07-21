@@ -134,10 +134,34 @@ def get_gemini_key() -> Optional[str]:
 
 
 def get_database_url() -> str:
-    """Get database URL with fallback"""
-    return get(
-        "DATABASE_URL", "postgresql://postgres:pass@localhost:5432/postgres"
-    )  # pragma: allowlist secret
+    """Get database URL - REQUIRES environment variable for security"""
+    db_url = get("DATABASE_URL", None)
+
+    if db_url is None:
+        # SECURITY: Never provide default credentials
+        raise ValueError(
+            "DATABASE_URL environment variable is required. "
+            "Set it to your database connection string. "
+            "Example: DATABASE_URL='postgresql://username:password@host:port/database'"
+        )
+
+    # SECURITY: Basic validation of database URL format
+    if not db_url.startswith(("postgresql://", "postgres://", "sqlite:///")):
+        raise ValueError(
+            f"Invalid DATABASE_URL format: {db_url}. "
+            "Must start with postgresql://, postgres://, or sqlite:///"
+        )
+
+    # SECURITY: Warn about common insecure patterns
+    if "password" in db_url.lower() or "pass@" in db_url.lower():
+        import logging
+
+        logging.warning(
+            "WARNING: DATABASE_URL contains common weak passwords. "
+            "Use strong, unique passwords in production."
+        )
+
+    return db_url
 
 
 def get_redis_url() -> str:

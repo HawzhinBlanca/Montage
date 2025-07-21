@@ -1,7 +1,6 @@
 """Redis-based checkpointing system for crash recovery"""
 
 import json
-import logging
 import pickle
 import time
 from typing import Any, Dict, Optional
@@ -9,6 +8,16 @@ from datetime import datetime, timedelta
 import redis
 from redis.exceptions import RedisError
 from contextlib import contextmanager
+
+# Import centralized logging
+try:
+    from ..utils.logging_config import get_logger, correlation_context
+except ImportError:
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from utils.logging_config import get_logger, correlation_context
 
 try:
     from ..config import REDIS_URL, get
@@ -21,7 +30,7 @@ except ImportError:
     from config import REDIS_URL, get
     from core.db import Database
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CheckpointError(Exception):
@@ -109,9 +118,15 @@ class CheckpointManager:
 
             logger.info(f"Saved checkpoint for job {job_id} at stage '{stage}'")
 
-        except Exception as e:
+        except (
+            RedisError,
+            pickle.PickleError,
+            json.JSONEncodeError,
+            ValueError,
+            TypeError,
+        ) as e:
             logger.error(f"Failed to save checkpoint: {e}")
-            raise CheckpointError(f"Checkpoint save failed: {e}")
+            raise CheckpointError(f"Checkpoint save failed: {e}") from e
 
     def load_checkpoint(self, job_id: str, stage: str) -> Optional[Dict[str, Any]]:
         """Load a checkpoint for a job stage"""
@@ -127,7 +142,12 @@ class CheckpointManager:
             logger.info(f"Loaded checkpoint for job {job_id} at stage '{stage}'")
             return checkpoint["data"]
 
-        except Exception as e:
+        except (
+            RedisError,
+            pickle.UnpicklingError,
+            pickle.PickleError,
+            ValueError,
+        ) as e:
             logger.error(f"Failed to load checkpoint: {e}")
             return None
 
@@ -149,7 +169,7 @@ class CheckpointManager:
                 )
                 return data
 
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Failed to restore from PostgreSQL: {e}")
 
         return None
@@ -196,7 +216,13 @@ class CheckpointManager:
 
             return None
 
-        except Exception as e:
+        except (
+            RedisError,
+            ValueError,
+            TypeError,
+            UnicodeDecodeError,
+            AttributeError,
+        ) as e:
             logger.error(f"Failed to get last successful stage: {e}")
             return None
 
@@ -218,7 +244,7 @@ class CheckpointManager:
 
             logger.info(f"Deleted all checkpoints for job {job_id}")
 
-        except Exception as e:
+        except (RedisError, UnicodeDecodeError, AttributeError) as e:
             logger.error(f"Failed to delete checkpoints: {e}")
 
     def exists(self, job_id: str, stage: str) -> bool:
@@ -276,7 +302,13 @@ class CheckpointManager:
                 "checkpoints": checkpoints,
             }
 
-        except Exception as e:
+        except (
+            RedisError,
+            UnicodeDecodeError,
+            ValueError,
+            TypeError,
+            AttributeError,
+        ) as e:
             logger.error(f"Failed to get job progress: {e}")
             return {"job_id": job_id, "error": str(e)}
 
@@ -284,7 +316,7 @@ class CheckpointManager:
         """Check Redis connection health"""
         try:
             return self.redis_client.ping()
-        except Exception:
+        except (RedisError, ConnectionError, TimeoutError):
             return False
 
 

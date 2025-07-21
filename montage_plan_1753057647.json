@@ -1,0 +1,96 @@
+{
+  "video_path": "test_video.mp4",
+  "mode": "smart",
+  "success": true,
+  "error": null,
+  "analysis": {
+    "transcript_length": 39996,
+    "word_count": 6962,
+    "speaker_turns": 44
+  },
+  "highlights": [
+    {
+      "start_ms": 1210160,
+      "end_ms": 1219500,
+      "text": "and so i said alright right, you look amazing. i found out how old she was. i thought she was at least ten years younger than she looked i said, whatever you do, whatever you do, i'll do it.",
+      "title": "and so i said alright right,",
+      "score": 10.996732832284545,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 9.339999999999918,
+      "audio_energy": 0.03136641614227614
+    },
+    {
+      "start_ms": 1639485,
+      "end_ms": 1648940,
+      "text": "and really, the only true evidence that you can trust that I like to say is a fact is when a double blind placebo controlled study in humans is done.",
+      "title": "and really, the only true evidence",
+      "score": 11.058678047048002,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 9.455000000000155,
+      "audio_energy": 0.056589023523993406
+    },
+    {
+      "start_ms": 1648900,
+      "end_ms": 1655140,
+      "text": "done the rest is animal research might work. and let's focus on nmn for example.",
+      "title": "done the rest is animal research",
+      "score": 10.732557153147589,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 6.240000000000009,
+      "audio_energy": 0.054278576573794146
+    },
+    {
+      "start_ms": 2015020,
+      "end_ms": 2028160,
+      "text": "For example, there's one called spermidine which is found the plant world as well as in animals and even in semen which is how it got its name.",
+      "title": "For example, there's one called sperm...",
+      "score": 11.431114251115599,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 13.1400000000001,
+      "audio_energy": 0.058557125557793924
+    },
+    {
+      "start_ms": 2209910,
+      "end_ms": 2220160,
+      "text": "and it's really quite an amazing time to be alive. so I think the next five years, it's hard to know where we'll be, but I am seeing incredible progress even just in my own lab.",
+      "title": "and it's really quite an amazing",
+      "score": 11.029711898163809,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 10.25,
+      "audio_energy": 0.002355949081903983
+    },
+    {
+      "start_ms": 2512600,
+      "end_ms": 2520680,
+      "text": "okay thank you so much. i've fulfilled my dream of interviewing you. And thank you so much for sharing your incredible insights.",
+      "title": "okay thank you so much. i've",
+      "score": 10.919682106199469,
+      "sentence_complete": true,
+      "keyword_count": 2,
+      "duration": 8.079999999999927,
+      "audio_energy": 0.05584105309973817
+    }
+  ],
+  "timeline": {
+    "success": true,
+    "project_name": "Montage_1753057631",
+    "output_path": "/Users/hawzhin/Montage/output/Montage_1753057631_vertical.mp4",
+    "clips_added": 6,
+    "vertical_format": true,
+    "resolution": "1080x1920",
+    "method": "intelligent_vertical_cropping"
+  },
+  "cost": 0.00031,
+  "output_video": "/Users/hawzhin/Montage/output/Montage_1753057631_vertical.mp4",
+  "quality": {
+    "is_valid": true,
+    "issues": [],
+    "validation_passed": true,
+    "critical_failures": 0
+  }
+}

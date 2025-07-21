@@ -1,0 +1,784 @@
+{
+  "sha": "ff3489aff7d274ccc140d2079b258cc2f326fa16a914b573c52d60ac0d5ff178",
+  "words": [
+    {
+      "word": " Welcome",
+      "start": 8.799999999999999,
+      "end": 9.72,
+      "confidence": 0.6958828568458557,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " to",
+      "start": 9.72,
+      "end": 10.36,
+      "confidence": 0.9794726371765137,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " the",
+      "start": 10.36,
+      "end": 10.48,
+      "confidence": 0.9855778813362122,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " program.",
+      "start": 10.48,
+      "end": 10.9,
+      "confidence": 0.6018004417419434,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " We",
+      "start": 11.22,
+      "end": 11.22,
+      "confidence": 0.9863184690475464,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " are",
+      "start": 11.22,
+      "end": 11.52,
+      "confidence": 0.4381394684314728,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " very,",
+      "start": 11.52,
+      "end": 12.28,
+      "confidence": 0.9862354397773743,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " very",
+      "start": 12.3,
+      "end": 12.48,
+      "confidence": 0.9992091059684753,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " excited",
+      "start": 12.48,
+      "end": 13.6,
+      "confidence": 0.988564670085907,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " to",
+      "start": 13.6,
+      "end": 13.94,
+      "confidence": 0.9939572811126709,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " have",
+      "start": 13.94,
+      "end": 14.34,
+      "confidence": 0.9976993203163147,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Professor",
+      "start": 14.34,
+      "end": 15.54,
+      "confidence": 0.9355432987213135,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " David",
+      "start": 15.54,
+      "end": 16.1,
+      "confidence": 0.9954642653465271,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Sinclair,",
+      "start": 16.1,
+      "end": 16.82,
+      "confidence": 0.884260892868042,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " a",
+      "start": 17.62,
+      "end": 17.62,
+      "confidence": 0.49655020236968994,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " well",
+      "start": 17.62,
+      "end": 17.74,
+      "confidence": 0.1614263504743576,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": "-renowned",
+      "start": 17.74,
+      "end": 18.18,
+      "confidence": 0.7729660868644714,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " geneticist,",
+      "start": 18.18,
+      "end": 19.82,
+      "confidence": 0.9885250329971313,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " and",
+      "start": 19.82,
+      "end": 20.5,
+      "confidence": 0.9841757416725159,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " certainly",
+      "start": 20.5,
+      "end": 21.62,
+      "confidence": 0.6661264300346375,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " in",
+      "start": 21.62,
+      "end": 21.86,
+      "confidence": 0.9299952983856201,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " my",
+      "start": 21.86,
+      "end": 21.98,
+      "confidence": 0.9695504903793335,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " mind",
+      "start": 21.98,
+      "end": 22.54,
+      "confidence": 0.998935878276825,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " and",
+      "start": 22.54,
+      "end": 22.72,
+      "confidence": 0.41802147030830383,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " most",
+      "start": 22.72,
+      "end": 23.26,
+      "confidence": 0.9677720069885254,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " people's",
+      "start": 23.26,
+      "end": 24.48,
+      "confidence": 0.9098581969738007,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " mind,",
+      "start": 24.48,
+      "end": 24.82,
+      "confidence": 0.9656648635864258,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " the",
+      "start": 24.82,
+      "end": 25.46,
+      "confidence": 0.07829167693853378,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " most",
+      "start": 25.46,
+      "end": 25.76,
+      "confidence": 0.9873483180999756,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " prominent",
+      "start": 25.76,
+      "end": 26.26,
+      "confidence": 0.9984373450279236,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " longevity",
+      "start": 26.26,
+      "end": 26.76,
+      "confidence": 0.9697394371032715,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " scientist",
+      "start": 26.76,
+      "end": 27.44,
+      "confidence": 0.936060905456543,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " on",
+      "start": 27.44,
+      "end": 27.94,
+      "confidence": 0.9757751226425171,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " the",
+      "start": 27.94,
+      "end": 28.06,
+      "confidence": 0.9887856245040894,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " planet.",
+      "start": 28.06,
+      "end": 28.48,
+      "confidence": 0.9970830082893372,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " My",
+      "start": 29.82,
+      "end": 30.6,
+      "confidence": 0.9597328305244446,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " co",
+      "start": 30.6,
+      "end": 30.88,
+      "confidence": 0.977627158164978,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": "-host",
+      "start": 30.88,
+      "end": 31.42,
+      "confidence": 0.9666195809841156,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " is",
+      "start": 31.42,
+      "end": 31.9,
+      "confidence": 0.9351407289505005,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Honorable",
+      "start": 31.9,
+      "end": 32.7,
+      "confidence": 0.6304681897163391,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Professor",
+      "start": 32.7,
+      "end": 33.32,
+      "confidence": 0.8552589416503906,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Greg",
+      "start": 33.32,
+      "end": 34.3,
+      "confidence": 0.5813084244728088,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Hunt,",
+      "start": 34.3,
+      "end": 34.64,
+      "confidence": 0.6615412831306458,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " who",
+      "start": 35.02,
+      "end": 35.02,
+      "confidence": 0.9873470067977905,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " needs",
+      "start": 35.02,
+      "end": 35.42,
+      "confidence": 0.9818603992462158,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " no",
+      "start": 35.42,
+      "end": 35.62,
+      "confidence": 0.980708658695221,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " introduction",
+      "start": 35.62,
+      "end": 36.74,
+      "confidence": 0.9970259070396423,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " until",
+      "start": 36.74,
+      "end": 38.12,
+      "confidence": 0.8800013065338135,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " recently",
+      "start": 38.12,
+      "end": 38.7,
+      "confidence": 0.988135814666748,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Greg",
+      "start": 38.7,
+      "end": 39.28,
+      "confidence": 0.5898781418800354,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " was",
+      "start": 39.28,
+      "end": 39.56,
+      "confidence": 0.8445132970809937,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " the",
+      "start": 39.56,
+      "end": 39.78,
+      "confidence": 0.9765873551368713,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Federal",
+      "start": 39.78,
+      "end": 40.04,
+      "confidence": 0.6948257684707642,
+      "speaker": "SPEAKER_1"
+    },
+    {
+      "word": " Health",
+      "start": 40.04,
+      "end": 40.36,
+      "confidence": 0.8858655095100403,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Minister",
+      "start": 40.36,
+      "end": 40.62,
+      "confidence": 0.9800103306770325,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " of",
+      "start": 40.62,
+      "end": 41.34,
+      "confidence": 0.9795835614204407,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Australia,",
+      "start": 41.34,
+      "end": 41.34,
+      "confidence": 0.9408935308456421,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " and",
+      "start": 41.76,
+      "end": 41.76,
+      "confidence": 0.9761480093002319,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " again,",
+      "start": 41.76,
+      "end": 42.52,
+      "confidence": 0.7246741652488708,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " in",
+      "start": 42.68,
+      "end": 42.72,
+      "confidence": 0.9546659588813782,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " my",
+      "start": 42.72,
+      "end": 42.88,
+      "confidence": 0.9991956353187561,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " mind,",
+      "start": 42.88,
+      "end": 43.26,
+      "confidence": 0.9995488524436951,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " probably",
+      "start": 43.38,
+      "end": 43.6,
+      "confidence": 0.982058048248291,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " the",
+      "start": 43.6,
+      "end": 43.86,
+      "confidence": 0.9695650339126587,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " best",
+      "start": 43.86,
+      "end": 44.38,
+      "confidence": 0.9458595514297485,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " health",
+      "start": 44.38,
+      "end": 44.62,
+      "confidence": 0.9189270734786987,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " minister",
+      "start": 44.62,
+      "end": 44.92,
+      "confidence": 0.8643583059310913,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " we've",
+      "start": 44.92,
+      "end": 45.28,
+      "confidence": 0.9099854230880737,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " ever",
+      "start": 45.28,
+      "end": 45.46,
+      "confidence": 0.9942430853843689,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " had.",
+      "start": 45.46,
+      "end": 45.8,
+      "confidence": 0.9983812570571899,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " So,",
+      "start": 45.8,
+      "end": 46.36,
+      "confidence": 0.23350951075553894,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " welcome.",
+      "start": 46.48,
+      "end": 47.94,
+      "confidence": 0.038314420729875565,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " David,",
+      "start": 49.86,
+      "end": 50.34,
+      "confidence": 0.9504780769348145,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " it's",
+      "start": 50.62,
+      "end": 50.84,
+      "confidence": 0.9566367268562317,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " so",
+      "start": 50.84,
+      "end": 51.2,
+      "confidence": 0.9931558966636658,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " exciting",
+      "start": 51.2,
+      "end": 51.66,
+      "confidence": 0.9982442855834961,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " to",
+      "start": 51.66,
+      "end": 51.9,
+      "confidence": 0.9964357614517212,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " have",
+      "start": 51.9,
+      "end": 52.1,
+      "confidence": 0.9984920024871826,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " you",
+      "start": 52.1,
+      "end": 52.26,
+      "confidence": 0.9991675615310669,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " on",
+      "start": 52.26,
+      "end": 52.4,
+      "confidence": 0.9920870661735535,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " this",
+      "start": 52.4,
+      "end": 52.56,
+      "confidence": 0.9985224604606628,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " program,",
+      "start": 52.56,
+      "end": 53.06,
+      "confidence": 0.7907373309135437,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " and",
+      "start": 53.52,
+      "end": 53.52,
+      "confidence": 0.8821656703948975,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " as",
+      "start": 53.52,
+      "end": 53.96,
+      "confidence": 0.8398445248603821,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " I",
+      "start": 53.96,
+      "end": 54.04,
+      "confidence": 0.9954314231872559,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " mentioned,",
+      "start": 54.04,
+      "end": 54.26,
+      "confidence": 0.8470650315284729,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " I",
+      "start": 54.46,
+      "end": 54.46,
+      "confidence": 0.9985218644142151,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " really",
+      "start": 54.46,
+      "end": 54.7,
+      "confidence": 0.9936142563819885,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " wanted",
+      "start": 54.7,
+      "end": 54.94,
+      "confidence": 0.9747111797332764,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " to",
+      "start": 54.94,
+      "end": 55.16,
+      "confidence": 0.9951851963996887,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " do",
+      "start": 55.16,
+      "end": 55.28,
+      "confidence": 0.9962946772575378,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " this",
+      "start": 55.28,
+      "end": 55.44,
+      "confidence": 0.9988862872123718,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " for",
+      "start": 55.44,
+      "end": 55.58,
+      "confidence": 0.9944579601287842,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " a",
+      "start": 55.58,
+      "end": 55.68,
+      "confidence": 0.9970318078994751,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " long,",
+      "start": 55.68,
+      "end": 55.94,
+      "confidence": 0.9985400438308716,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " long",
+      "start": 56.04,
+      "end": 56.12,
+      "confidence": 0.9977518916130066,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " time.",
+      "start": 56.12,
+      "end": 56.54,
+      "confidence": 0.9933831095695496,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " I'm",
+      "start": 56.54,
+      "end": 56.78,
+      "confidence": 0.9780267775058746,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " a",
+      "start": 56.78,
+      "end": 56.78,
+      "confidence": 0.9634629487991333,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " huge",
+      "start": 56.78,
+      "end": 57.0,
+      "confidence": 0.9952143430709839,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " fan",
+      "start": 57.0,
+      "end": 57.36,
+      "confidence": 0.9248553514480591,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " since",
+      "start": 57.36,
+      "end": 57.72,
+      "confidence": 0.9259562492370605,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " I've",
+      "start": 57.72,
+      "end": 58.0,
+      "confidence": 0.9830936789512634,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " read",
+      "start": 58.0,
+      "end": 58.1,
+      "confidence": 0.534972071647644,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " your",
+      "start": 58.1,
+      "end": 58.36,
+      "confidence": 0.9736049771308899,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " book",
+      "start": 58.36,
+      "end": 58.78,
+      "confidence": 0.924487292766571,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Life",
+      "start": 58.78,
+      "end": 59.14,
+      "confidence": 0.21669866144657135,
+      "speaker": "SPEAKER_0"
+    },
+    {
+      "word": " Span.",
+      "start": 59.14,
+      "end": 59.6,
+      "confidence": 0.6777395009994507,
+      "speaker": "SPEAKER_0"
+    }
+  ],
+  "transcript": " Welcome  to  the  program.  We  are  very,  very  excited  to  have  Professor  David  Sinclair,  a  well -renowned  geneticist,  and  certainly  in  my  mind  and  most  people's  mind,  the  most  prominent  longevity  scientist  on  the  planet.  My  co -host  is  Honorable  Professor  Greg  Hunt,  who  needs  no  introduction  until  recently  Greg  was  the  Federal  Health  Minister  of  Australia,  and  again,  in  my  mind,  probably  the  best  health  minister  we've  ever  had.  So,  welcome.  David,  it's  so  exciting  to  have  you  on  this  program,  and  as  I  mentioned,  I  really  wanted  to  do  this  for  a  long,  long  time.  I'm  a  huge  fan  since  I've  read  your  book  Life  Span.",
+  "speaker_turns": [
+    {
+      "speaker": "SPEAKER_0",
+      "start": 0,
+      "end": 20
+    },
+    {
+      "speaker": "SPEAKER_1",
+      "start": 20,
+      "end": 40
+    },
+    {
+      "speaker": "SPEAKER_0",
+      "start": 40,
+      "end": 60
+    },
+    {
+      "speaker": "SPEAKER_1",
+      "start": 60,
+      "end": 60.000375
+    }
+  ]
+}

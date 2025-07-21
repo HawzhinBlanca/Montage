@@ -8,6 +8,18 @@ import subprocess
 from typing import List, Dict, Any
 import ffmpeg
 
+# Import centralized logging
+try:
+    from ..utils.logging_config import get_logger
+except ImportError:
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from utils.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 def make_concat_file(video_clips: List[Dict[str, Any]], source_video: str) -> str:
     """Create FFmpeg concat file for multiple video segments"""
@@ -45,8 +57,12 @@ def extract_video_segment(
 
         return True
 
-    except Exception as e:
-        print(f"❌ Failed to extract segment: {e}")
+    except (ffmpeg.Error, OSError, ValueError, TypeError) as e:
+        logger.error(
+            "Failed to extract video segment",
+            extra={"error_type": type(e).__name__},
+            exc_info=True,
+        )
         return False
 
 
@@ -55,8 +71,36 @@ def concatenate_video_segments(
     source_video: str,
     output_path: str,
     vertical_format: bool = False,
+    professional: bool = True,
 ) -> bool:
     """Concatenate multiple video segments into one video"""
+
+    # Use professional video creation if enabled
+    if professional and len(video_clips) > 0:
+        from .video_effects import create_professional_video
+
+        # Check if we have story metadata
+        story_theme = video_clips[0].get("story_theme", None) if video_clips else None
+        music_mood = (
+            video_clips[0].get("suggested_music", None) if video_clips else None
+        )
+
+        # Try professional creation first
+        if create_professional_video(
+            video_clips,
+            source_video,
+            output_path,
+            vertical_format,
+            story_theme,
+            music_mood,
+        ):
+            return True
+        else:
+            logger.warning(
+                "Professional video creation failed, falling back to standard processing"
+            )
+
+    # Standard concatenation
     try:
         # Create temporary files for each segment
         temp_files = []
@@ -69,11 +113,14 @@ def concatenate_video_segments(
             ):
                 temp_files.append(temp_file)
             else:
-                print(f"❌ Failed to extract segment {i}")
+                logger.error(
+                    "Failed to extract video segment during batch processing",
+                    extra={"segment_index": i},
+                )
                 return False
 
         if not temp_files:
-            print("❌ No segments to concatenate")
+            logger.error("No segments available for concatenation")
             return False
 
         # Create concat file
@@ -84,30 +131,46 @@ def concatenate_video_segments(
 
         # Concatenate segments with optional vertical scaling
         if vertical_format:
-            # Scale to vertical 1080x1920 format
-            cmd = [
-                "ffmpeg",
-                "-f",
-                "concat",
-                "-safe",
-                "0",
-                "-i",
-                concat_file,
-                "-vf",
-                "scale='min(1080,iw)':-2,fps=24,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black",
-                "-c:v",
-                "libx264",
-                "-preset",
-                "fast",
-                "-crf",
-                "18",
-                "-c:a",
-                "aac",
-                "-b:a",
-                "192k",
-                "-y",
-                output_path,
-            ]
+            # Use intelligent cropping for vertical format
+            from .intelligent_crop import create_intelligent_vertical_video
+
+            logger.info(
+                "Starting intelligent face detection and content-aware cropping"
+            )
+
+            if create_intelligent_vertical_video(
+                video_clips, source_video, output_path
+            ):
+                return True
+            else:
+                print(
+                    "⚠️  Intelligent cropping failed, falling back to basic vertical scaling"
+                )
+
+                # Fallback to improved vertical scaling (still better than black bars)
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-f",
+                    "concat",
+                    "-safe",
+                    "0",
+                    "-i",
+                    concat_file,
+                    "-vf",
+                    "scale='if(gt(a,9/16),1080,-1)':'if(gt(a,9/16),-1,1920)',crop=1080:1920,fps=30",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "fast",
+                    "-crf",
+                    "18",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    output_path,
+                ]
         else:
             # Standard concatenation
             cmd = [
@@ -137,17 +200,23 @@ def concatenate_video_segments(
         for temp_file in temp_files:
             try:
                 os.unlink(temp_file)
-            except Exception:
+            except (OSError, FileNotFoundError, PermissionError):
                 pass
 
         try:
             os.unlink(concat_file)
-        except Exception:
+        except (OSError, FileNotFoundError, PermissionError):
             pass
 
         return success
 
-    except Exception as e:
+    except (
+        subprocess.CalledProcessError,
+        OSError,
+        ValueError,
+        FileNotFoundError,
+        ffmpeg.Error,
+    ) as e:
         print(f"❌ Concatenation error: {e}")
         return False
 
@@ -169,13 +238,19 @@ def create_subtitle_file(
             print("❌ No words in segment for subtitles")
             return False
 
-        # Group words into subtitle lines (every 3-5 seconds)
+        # Group words into subtitle lines (every 3-5 seconds) - FIXED TIMING
         subtitle_lines = []
         current_line = []
         line_start = segment_words[0]["start"]
+        prev_word = None
+        word_idx = 0
 
-        for word in segment_words:
+        for word_idx, word in enumerate(segment_words):
+            # Skip consecutive duplicate words
+            if prev_word and word["word"].lower().strip() == prev_word.lower().strip():
+                continue
             current_line.append(word["word"])
+            prev_word = word["word"]
 
             # End line after 3-5 seconds or at sentence boundary
             if (
@@ -183,27 +258,83 @@ def create_subtitle_file(
                 and word["word"].endswith((".", "!", "?", ","))
             ) or (word["end"] - line_start >= 5):
 
+                # Clean duplicate words in the final text as well
+                text_words = " ".join(current_line).split()
+                cleaned_text = []
+                prev = None
+                for w in text_words:
+                    if prev is None or w.lower() != prev.lower():
+                        cleaned_text.append(w)
+                    prev = w
+
+                # Calculate relative times
+                rel_start = line_start - start_sec
+                rel_end = word["end"] - start_sec
+
+                # Ensure no overlap with previous subtitle
+                if subtitle_lines and rel_start < subtitle_lines[-1]["end"]:
+                    rel_start = subtitle_lines[-1]["end"] + 0.1  # 100ms gap
+
+                # Ensure end is after start
+                if rel_end <= rel_start:
+                    rel_end = rel_start + 0.5  # Minimum 500ms duration
+
                 subtitle_lines.append(
                     {
-                        "text": " ".join(current_line),
-                        "start": line_start - start_sec,  # Relative to segment start
-                        "end": word["end"] - start_sec,
+                        "text": " ".join(cleaned_text),
+                        "start": rel_start,
+                        "end": rel_end,
                     }
                 )
 
                 current_line = []
-                if len(segment_words) > segment_words.index(word) + 1:
-                    line_start = segment_words[segment_words.index(word) + 1]["start"]
+                # Set next line start - FIXED: use proper next word
+                if word_idx + 1 < len(segment_words):
+                    line_start = segment_words[word_idx + 1]["start"]
 
-        # Add any remaining words
+        # Add any remaining words - FIXED TIMING
         if current_line:
+            # Clean duplicate words in the final text as well
+            text_words = " ".join(current_line).split()
+            cleaned_text = []
+            prev = None
+            for w in text_words:
+                if prev is None or w.lower() != prev.lower():
+                    cleaned_text.append(w)
+                prev = w
+
+            # Calculate relative times with validation
+            rel_start = line_start - start_sec
+            rel_end = segment_words[-1]["end"] - start_sec
+
+            # Ensure no overlap with previous subtitle
+            if subtitle_lines and rel_start < subtitle_lines[-1]["end"]:
+                rel_start = subtitle_lines[-1]["end"] + 0.1  # 100ms gap
+
+            # Ensure end is after start
+            if rel_end <= rel_start:
+                rel_end = rel_start + 0.5  # Minimum 500ms duration
+
             subtitle_lines.append(
                 {
-                    "text": " ".join(current_line),
-                    "start": line_start - start_sec,
-                    "end": segment_words[-1]["end"] - start_sec,
+                    "text": " ".join(cleaned_text),
+                    "start": rel_start,
+                    "end": rel_end,
                 }
             )
+
+        # FINAL VALIDATION: Ensure no timing issues
+        for i in range(len(subtitle_lines) - 1):
+            current = subtitle_lines[i]
+            next_line = subtitle_lines[i + 1]
+
+            # Fix any remaining overlaps
+            if current["end"] > next_line["start"]:
+                current["end"] = next_line["start"] - 0.05  # 50ms gap
+
+            # Ensure minimum duration
+            if current["end"] - current["start"] < 0.2:
+                current["end"] = current["start"] + 0.2
 
         # Write SRT file
         with open(output_path, "w", encoding="utf-8") as f:
@@ -218,7 +349,7 @@ def create_subtitle_file(
         print(f"✅ Created subtitle file: {output_path} ({len(subtitle_lines)} lines)")
         return True
 
-    except Exception as e:
+    except (OSError, ValueError, KeyError, IndexError, TypeError) as e:
         print(f"❌ Subtitle creation failed: {e}")
         return False
 
@@ -256,7 +387,7 @@ def burn_captions(video_path: str, srt_path: str, output_path: str) -> bool:
         print(f"✅ Burned subtitles into: {output_path}")
         return True
 
-    except Exception as e:
+    except (ffmpeg.Error, OSError, FileNotFoundError, ValueError) as e:
         print(f"❌ Subtitle burning failed: {e}")
         return False
 
@@ -307,7 +438,7 @@ def apply_smart_crop(
         )
         return True
 
-    except Exception as e:
+    except (ffmpeg.Error, OSError, ValueError, KeyError, TypeError) as e:
         print(f"❌ Smart crop failed: {e}")
         return False
 
@@ -352,6 +483,6 @@ def get_video_info(video_path: str) -> Dict[str, Any]:
 
         return info
 
-    except Exception as e:
+    except (ffmpeg.Error, OSError, ValueError, KeyError, TypeError) as e:
         print(f"❌ Failed to get video info: {e}")
         return {}

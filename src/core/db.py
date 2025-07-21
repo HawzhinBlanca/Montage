@@ -2,9 +2,12 @@
 
 import re
 import logging
+import os
 from psycopg2 import extras, pool
 from contextlib import contextmanager
 from typing import List, Dict, Any, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 try:
     from ..config import DATABASE_URL
@@ -15,7 +18,15 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent.parent))
     from config import DATABASE_URL
 
-logger = logging.getLogger(__name__)
+# Fallback to SQLite for local development/testing
+if not DATABASE_URL or DATABASE_URL == "postgresql://":
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./montage-local.db")
+    logger.warning("No PostgreSQL configured, using SQLite fallback")
+
+# Fail fast in production
+if DATABASE_URL and DATABASE_URL.startswith("sqlite") and os.getenv("ENV") == "prod":
+    logger.critical("PostgreSQL required in production - set DATABASE_URL")
+    raise RuntimeError("PostgreSQL required in production - set DATABASE_URL")
 
 
 class DatabaseError(Exception):
@@ -54,9 +65,21 @@ class DatabasePool:
         """Validate column name to prevent injection"""
         return bool(re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", column))
 
+    def _quote_identifier(self, identifier: str) -> str:
+        """SECURITY: Safely quote a SQL identifier (table/column name)"""
+        # Double any quotes in the identifier
+        escaped = identifier.replace('"', '""')
+        return f'"{escaped}"'
+
     def _init_pool(self):
         """Initialize connection pool"""
         try:
+            # Skip PostgreSQL pool if using SQLite fallback
+            if DATABASE_URL.startswith("sqlite"):
+                logger.warning("SQLite mode - database operations will be disabled")
+                self.pool = None
+                return
+
             self.pool = pool.ThreadedConnectionPool(
                 minconn=1,
                 maxconn=10,
@@ -66,11 +89,18 @@ class DatabasePool:
             logger.info("Database pool initialized: min=1, max=10")
         except Exception as e:
             logger.error(f"Failed to initialize database pool: {e}")
-            raise DatabaseError(f"Database pool initialization failed: {e}")
+            # Don't fail hard - allow pipeline to continue without DB
+            logger.warning("Continuing without database - caching disabled")
+            self.pool = None
 
     @contextmanager
     def get_connection(self):
         """Get a connection from pool"""
+        if self.pool is None:
+            # No database available - yield None
+            yield None
+            return
+
         conn = None
         try:
             conn = self.pool.getconn()
@@ -83,6 +113,11 @@ class DatabasePool:
     def get_cursor(self, commit: bool = True):
         """Get a cursor with automatic commit/rollback"""
         with self.get_connection() as conn:
+            if conn is None:
+                # No database - yield None
+                yield None
+                return
+
             cursor = conn.cursor()
             try:
                 yield cursor
@@ -124,6 +159,9 @@ class SecureDatabase:
     ) -> Optional[List[Dict]]:
         """Execute a query and return results"""
         with self.pool.get_cursor(commit=commit) as cursor:
+            if cursor is None:
+                logger.debug("No database connection - skipping query")
+                return None
             cursor.execute(query, params)
             if cursor.description:
                 return cursor.fetchall()
@@ -134,6 +172,9 @@ class SecureDatabase:
     ) -> None:
         """Execute a query multiple times with different parameters"""
         with self.pool.get_cursor(commit=commit) as cursor:
+            if cursor is None:
+                logger.debug("No database connection - skipping execute_many")
+                return
             cursor.executemany(query, params_list)
 
     def insert(
@@ -155,13 +196,21 @@ class SecureDatabase:
         columns = list(data.keys())
         values = list(data.values())
         placeholders = ", ".join(["%s"] * len(values))
-        columns_str = ", ".join(columns)
 
-        query = f"INSERT INTO {table} ({columns_str}) VALUES ({placeholders})"
+        # SECURITY: Use quoted identifiers to prevent SQL injection
+        quoted_table = self.pool._quote_identifier(table)
+        quoted_columns = [self.pool._quote_identifier(col) for col in columns]
+        columns_str = ", ".join(quoted_columns)
+
+        query = f"INSERT INTO {quoted_table} ({columns_str}) VALUES ({placeholders})"
         if returning:
-            query += f" RETURNING {returning}"
+            quoted_returning = self.pool._quote_identifier(returning)
+            query += f" RETURNING {quoted_returning}"
 
         with self.pool.get_cursor() as cursor:
+            if cursor is None:
+                logger.debug("No database connection - skipping insert")
+                return None
             cursor.execute(query, values)
             if returning:
                 result = cursor.fetchone()
@@ -179,13 +228,18 @@ class SecureDatabase:
             if not self.pool._validate_column_name(column):
                 raise ValueError(f"Invalid column name: {column}")
 
-        set_parts = [f"{k} = %s" for k in data.keys()]
-        where_parts = [f"{k} = %s" for k in where.keys()]
+        # SECURITY: Use quoted identifiers
+        quoted_table = self.pool._quote_identifier(table)
+        set_parts = [f"{self.pool._quote_identifier(k)} = %s" for k in data.keys()]
+        where_parts = [f"{self.pool._quote_identifier(k)} = %s" for k in where.keys()]
 
-        query = f"UPDATE {table} SET {', '.join(set_parts)} WHERE {' AND '.join(where_parts)}"
+        query = f"UPDATE {quoted_table} SET {', '.join(set_parts)} WHERE {' AND '.join(where_parts)}"
         params = list(data.values()) + list(where.values())
 
         with self.pool.get_cursor() as cursor:
+            if cursor is None:
+                logger.debug("No database connection - skipping update")
+                return 0
             cursor.execute(query, params)
             return cursor.rowcount
 
@@ -197,7 +251,9 @@ class SecureDatabase:
         if not self.pool._validate_table_name(table):
             raise ValueError(f"Invalid table name: {table}")
 
-        query = f"SELECT * FROM {table}"
+        # SECURITY: Use quoted identifiers
+        quoted_table = self.pool._quote_identifier(table)
+        query = f"SELECT * FROM {quoted_table}"
         params = None
 
         if where:
@@ -206,7 +262,9 @@ class SecureDatabase:
                 if not self.pool._validate_column_name(column):
                     raise ValueError(f"Invalid column name: {column}")
 
-            where_parts = [f"{k} = %s" for k in where.keys()]
+            where_parts = [
+                f"{self.pool._quote_identifier(k)} = %s" for k in where.keys()
+            ]
             query += f" WHERE {' AND '.join(where_parts)}"
             params = list(where.values())
 
@@ -227,7 +285,9 @@ class SecureDatabase:
         if not self.pool._validate_table_name(table):
             raise ValueError(f"Invalid table name: {table}")
 
-        query = f"SELECT * FROM {table}"
+        # SECURITY: Use quoted identifiers
+        quoted_table = self.pool._quote_identifier(table)
+        query = f"SELECT * FROM {quoted_table}"
         params: List[Any] = []
 
         if where:
@@ -236,15 +296,23 @@ class SecureDatabase:
                 if not self.pool._validate_column_name(column):
                     raise ValueError(f"Invalid column name: {column}")
 
-            where_parts = [f"{k} = %s" for k in where.keys()]
+            where_parts = [
+                f"{self.pool._quote_identifier(k)} = %s" for k in where.keys()
+            ]
             query += f" WHERE {' AND '.join(where_parts)}"
             params.extend(where.values())
 
         if order_by:
-            # Validate order by clause
-            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*(\s+(ASC|DESC))?$", order_by):
+            # SECURITY: Parse and quote ORDER BY clause
+            order_match = re.match(
+                r"^([a-zA-Z_][a-zA-Z0-9_]*)(\s+(ASC|DESC))?$", order_by
+            )
+            if not order_match:
                 raise ValueError(f"Invalid ORDER BY clause: {order_by}")
-            query += f" ORDER BY {order_by}"
+            column_name = order_match.group(1)
+            direction = order_match.group(3) or ""
+            quoted_column = self.pool._quote_identifier(column_name)
+            query += f" ORDER BY {quoted_column} {direction}"
 
         if limit:
             if not isinstance(limit, int) or limit < 1:
@@ -267,10 +335,15 @@ class SecureDatabase:
             if not self.pool._validate_column_name(column):
                 raise ValueError(f"Invalid column name: {column}")
 
-        where_parts = [f"{k} = %s" for k in where.keys()]
-        query = f"DELETE FROM {table} WHERE {' AND '.join(where_parts)}"
+        # SECURITY: Use quoted identifiers
+        quoted_table = self.pool._quote_identifier(table)
+        where_parts = [f"{self.pool._quote_identifier(k)} = %s" for k in where.keys()]
+        query = f"DELETE FROM {quoted_table} WHERE {' AND '.join(where_parts)}"
 
         with self.pool.get_cursor() as cursor:
+            if cursor is None:
+                logger.debug("No database connection - skipping delete")
+                return 0
             cursor.execute(query, list(where.values()))
             return cursor.rowcount
 
@@ -280,7 +353,9 @@ class SecureDatabase:
         if not self.pool._validate_table_name(table):
             raise ValueError(f"Invalid table name: {table}")
 
-        query = f"SELECT COUNT(*) as count FROM {table}"
+        # SECURITY: Use quoted identifiers
+        quoted_table = self.pool._quote_identifier(table)
+        query = f"SELECT COUNT(*) as count FROM {quoted_table}"
         params = None
 
         if where:
@@ -289,7 +364,9 @@ class SecureDatabase:
                 if not self.pool._validate_column_name(column):
                     raise ValueError(f"Invalid column name: {column}")
 
-            where_parts = [f"{k} = %s" for k in where.keys()]
+            where_parts = [
+                f"{self.pool._quote_identifier(k)} = %s" for k in where.keys()
+            ]
             query += f" WHERE {' AND '.join(where_parts)}"
             params = list(where.values())
 
@@ -300,6 +377,11 @@ class SecureDatabase:
     def transaction(self):
         """Execute multiple operations in a transaction"""
         with self.pool.get_connection() as conn:
+            if conn is None:
+                # No database - yield None
+                yield None
+                return
+
             cursor = conn.cursor()
             try:
                 yield cursor

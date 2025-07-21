@@ -66,7 +66,7 @@ class SmartTrack:
                 detectShadows=False
             )
 
-        except Exception as e:
+        except (cv2.error, AttributeError, RuntimeError, OSError) as e:
             logger.error(f"Detector initialization failed: {e}")
 
     async def process(
@@ -92,7 +92,12 @@ class SmartTrack:
             for future in futures:
                 try:
                     analysis_results[futures[future]] = future.result()
-                except Exception as e:
+                except (
+                    concurrent.futures.TimeoutError,
+                    RuntimeError,
+                    ValueError,
+                    AttributeError,
+                ) as e:
                     logger.error(f"Analysis {futures[future]} failed: {e}")
                     analysis_results[futures[future]] = []
 
@@ -221,7 +226,7 @@ class SmartTrack:
 
                 frame_count += 1
 
-        except Exception as e:
+        except (cv2.error, ValueError, AttributeError, RuntimeError) as e:
             logger.error(f"Optical flow calculation failed: {e}")
         finally:
             cap.release()
@@ -338,7 +343,7 @@ class SmartTrack:
             if face_detections:
                 segments = self._group_face_detections(face_detections)
 
-        except Exception as e:
+        except (cv2.error, ValueError, AttributeError, RuntimeError) as e:
             logger.error(f"Face analysis failed: {e}")
         finally:
             cap.release()
@@ -416,7 +421,13 @@ class SmartTrack:
                             )
                         in_segment = False
 
-        except Exception as e:
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            OSError,
+            ValueError,
+            RuntimeError,
+        ) as e:
             logger.error(f"Audio analysis failed: {e}")
         finally:
             if os.path.exists(audio_path):
@@ -483,7 +494,7 @@ class SmartTrack:
                         )
                     )
 
-        except Exception as e:
+        except (cv2.error, ValueError, AttributeError, RuntimeError, IndexError) as e:
             logger.error(f"Scene detection failed: {e}")
         finally:
             cap.release()

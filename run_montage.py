@@ -83,8 +83,8 @@ Examples:
     if args.no_server:
         cmd.append("--no-server")
 
-    # Note: vertical format is handled in the pipeline based on MCP request
-    # This is a placeholder for future direct CLI support
+    if args.vertical:
+        cmd.append("--vertical")
 
     logger.info(f"🎬 Processing video: {args.video}")
     logger.info(f"   Mode: {args.mode}")

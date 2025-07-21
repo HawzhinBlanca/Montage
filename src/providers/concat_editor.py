@@ -11,9 +11,17 @@ import uuid
 try:
     from ..config import get
 except ImportError:
-    from src.config import get
-from .video_processor import FFmpegPipeline
-from ..core.metrics import metrics
+    import sys
+    from pathlib import Path
+
+    sys.path.append(str(Path(__file__).parent.parent))
+    from config import get
+try:
+    from .video_processor import FFmpegPipeline
+    from ..core.metrics import metrics
+except ImportError:
+    from providers.video_processor import FFmpegPipeline
+    from core.metrics import metrics
 
 logger = logging.getLogger(__name__)
 

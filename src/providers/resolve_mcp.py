@@ -61,7 +61,7 @@ class ResolveManager:
             else:
                 print("❌ DaVinci Resolve not running")
                 return False
-        except Exception as e:
+        except (AttributeError, RuntimeError, OSError) as e:
             print(f"❌ Failed to connect to DaVinci Resolve: {e}")
             return False
 
@@ -76,7 +76,7 @@ class ResolveManager:
                 self.media_pool = self.current_project.GetMediaPool()
                 return True
             return False
-        except Exception as e:
+        except (AttributeError, RuntimeError, TypeError) as e:
             print(f"❌ Failed to create project: {e}")
             return False
 
@@ -88,7 +88,7 @@ class ResolveManager:
         try:
             media_items = self.media_pool.ImportMedia([file_path])
             return media_items[0] if media_items else None
-        except Exception as e:
+        except (AttributeError, RuntimeError, FileNotFoundError, OSError) as e:
             print(f"❌ Failed to import media: {e}")
             return None
 
@@ -100,7 +100,7 @@ class ResolveManager:
         try:
             timeline = self.media_pool.CreateEmptyTimeline(name)
             return timeline
-        except Exception as e:
+        except (AttributeError, RuntimeError, ValueError) as e:
             print(f"❌ Failed to create timeline: {e}")
             return None
 
@@ -130,7 +130,7 @@ class ResolveManager:
             success = self.media_pool.AppendToTimeline(timeline_items)
             return success
 
-        except Exception as e:
+        except (AttributeError, RuntimeError, ValueError, TypeError) as e:
             print(f"❌ Failed to add clips to timeline: {e}")
             return False
 
@@ -149,7 +149,9 @@ class ResolveManager:
                 "FormatHeight": 540,
                 "FrameRate": "24",
                 "VideoQuality": 2,  # Lower quality for proxy
-                "FormatAndCodec": "mp4",
+                "ExportVideoFormat": "MP4",
+                "VideoFormat": "MP4",
+                "FormatAndCodec": "MP4",
                 "Codec": "H264",
             }
 
@@ -171,8 +173,106 @@ class ResolveManager:
 
             return False
 
-        except Exception as e:
+        except (AttributeError, RuntimeError, OSError, ValueError) as e:
             print(f"❌ Proxy render failed: {e}")
+            return False
+
+    def render_final(self, timeline, output_path: str, vertical: bool = False) -> bool:
+        """Render final high-quality video"""
+        if not timeline or not self.current_project:
+            return False
+
+        try:
+            # Set render settings for final output
+            if vertical:
+                # Vertical format for social media
+                render_settings = {
+                    "SelectAllFrames": True,
+                    "TargetDir": os.path.dirname(output_path),
+                    "CustomName": os.path.basename(output_path).replace(".mp4", ""),
+                    "FormatWidth": 1080,
+                    "FormatHeight": 1920,
+                    "FrameRate": "30",
+                    "VideoQuality": 0,  # Highest quality
+                    "ExportVideoFormat": "MP4",
+                    "VideoFormat": "MP4",
+                    "FormatAndCodec": "MP4",
+                    "Codec": "H264",
+                    "AudioCodec": "AAC",
+                    "AudioBitrate": 192000,
+                    "VideoBitrate": 10000000,  # 10 Mbps for high quality
+                }
+            else:
+                # Standard landscape format
+                render_settings = {
+                    "SelectAllFrames": True,
+                    "TargetDir": os.path.dirname(output_path),
+                    "CustomName": os.path.basename(output_path).replace(".mp4", ""),
+                    "FormatWidth": 1920,
+                    "FormatHeight": 1080,
+                    "FrameRate": "30",
+                    "VideoQuality": 0,  # Highest quality
+                    "ExportVideoFormat": "MP4",
+                    "VideoFormat": "MP4",
+                    "FormatAndCodec": "MP4",
+                    "Codec": "H264",
+                    "AudioCodec": "AAC",
+                    "AudioBitrate": 192000,
+                    "VideoBitrate": 15000000,  # 15 Mbps for high quality
+                }
+
+            self.current_project.SetRenderSettings(render_settings)
+
+            # Add render job
+            job_id = self.current_project.AddRenderJob()
+            if job_id:
+                print(f"🎬 Starting DaVinci Resolve render: {output_path}")
+
+                # Start rendering
+                self.current_project.StartRendering(job_id)
+
+                # Wait for completion with progress
+                import time
+
+                while self.current_project.IsRenderingInProgress():
+                    time.sleep(2)
+                    print(".", end="", flush=True)
+
+                print("\n✅ DaVinci Resolve render complete")
+
+                # Find the actual file that was created and move it to expected path
+                output_dir = os.path.dirname(output_path)
+                timeline_files = []
+                for f in os.listdir(output_dir):
+                    if "timeline" in f and (f.endswith(".mov") or f.endswith(".mp4")):
+                        file_path = os.path.join(output_dir, f)
+                        timeline_files.append((file_path, os.path.getctime(file_path)))
+
+                if timeline_files:
+                    # Get the most recently created timeline file
+                    actual_file = max(timeline_files, key=lambda x: x[1])[0]
+
+                    # Move it to the expected path
+                    if actual_file != output_path:
+                        import shutil
+
+                        shutil.move(actual_file, output_path)
+                        print(
+                            f"✅ Moved {os.path.basename(actual_file)} to {os.path.basename(output_path)}"
+                        )
+
+                return True
+
+            return False
+
+        except (
+            AttributeError,
+            RuntimeError,
+            OSError,
+            ValueError,
+            FileNotFoundError,
+        ) as e:
+            print(f"❌ Final render failed: {e}")
             return False
 
 
@@ -199,45 +299,88 @@ def build_timeline():
             response.status = 422
             return {"error": "Missing required fields: video_path and clips"}
 
+        # Try DaVinci Resolve first if available
+        use_ffmpeg = True
+        timeline = None
+
         if RESOLVE_AVAILABLE and resolve_manager.connected:
-            # Real DaVinci Resolve implementation
+            # Real DaVinci Resolve implementation with render
 
             # Create project
             if not resolve_manager.create_project(project_name):
-                response.status = 500
-                return {"error": "Failed to create project"}
+                use_ffmpeg = True
+            else:
+                # Import media
+                media_item = resolve_manager.import_media(video_path)
+                if not media_item:
+                    use_ffmpeg = True
+                else:
+                    # Create timeline
+                    timeline = resolve_manager.create_timeline("Main Timeline")
+                    if not timeline:
+                        use_ffmpeg = True
+                    else:
+                        # Add clips
+                        if not resolve_manager.add_clips_to_timeline(
+                            timeline, media_item, clips
+                        ):
+                            use_ffmpeg = True
+                        else:
+                            print("✅ DaVinci timeline created")
 
-            # Import media
-            media_item = resolve_manager.import_media(video_path)
-            if not media_item:
-                response.status = 500
-                return {"error": "Failed to import media"}
+                            # Try to render with DaVinci Resolve
+                            import os
 
-            # Create timeline
-            timeline = resolve_manager.create_timeline("Main Timeline")
-            if not timeline:
-                response.status = 500
-                return {"error": "Failed to create timeline"}
+                            output_dir = os.path.join(
+                                os.path.dirname(
+                                    os.path.dirname(
+                                        os.path.dirname(os.path.abspath(__file__))
+                                    )
+                                ),
+                                "output",
+                            )
+                            os.makedirs(output_dir, exist_ok=True)
+                            output_path = os.path.join(
+                                output_dir, f"{project_name}_timeline.mp4"
+                            )
 
-            # Add clips
-            if not resolve_manager.add_clips_to_timeline(timeline, media_item, clips):
-                response.status = 500
-                return {"error": "Failed to add clips to timeline"}
+                            if resolve_manager.render_final(
+                                timeline, output_path, vertical_format
+                            ):
+                                # Successfully rendered with DaVinci
+                                use_ffmpeg = False
+                                return {
+                                    "success": True,
+                                    "project_name": project_name,
+                                    "output_path": output_path,
+                                    "clips_added": len(clips),
+                                    "vertical_format": vertical_format,
+                                    "resolution": (
+                                        "1080x1920" if vertical_format else "1920x1080"
+                                    ),
+                                    "method": "davinci_resolve_rendered",
+                                }
+                            else:
+                                print(
+                                    "⚠️  DaVinci render failed, falling back to FFmpeg"
+                                )
+                                use_ffmpeg = True
 
-            return {
-                "success": True,
-                "project_name": project_name,
-                "timeline_name": "Main Timeline",
-                "clips_added": len(clips),
-                "method": "davinci_resolve",
-            }
-
-        else:
+        if use_ffmpeg:
             # Fallback: Use FFmpeg for concatenation with vertical format
-            from .ffmpeg_utils import concatenate_video_segments
+            from ..utils.ffmpeg_utils import concatenate_video_segments
 
-            # Create output path
-            output_path = f"/tmp/{project_name}_timeline.mp4"
+            # Create output path in project output directory
+            import os
+
+            output_dir = os.path.join(
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                ),
+                "output",
+            )
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = os.path.join(output_dir, f"{project_name}_timeline.mp4")
 
             # Concatenate clips with vertical format option
             if concatenate_video_segments(
@@ -256,7 +399,14 @@ def build_timeline():
                 response.status = 500
                 return {"error": "Failed to concatenate clips"}
 
-    except Exception as e:
+    except (
+        ValueError,
+        TypeError,
+        KeyError,
+        AttributeError,
+        OSError,
+        FileNotFoundError,
+    ) as e:
         response.status = 500
         return {"error": str(e)}
 
@@ -322,11 +472,18 @@ def render_proxy():
                     response.status = 500
                     return {"error": "No timeline to render"}
 
-            except Exception as e:
+            except (OSError, FileNotFoundError, PermissionError, AttributeError) as e:
                 response.status = 500
                 return {"error": f"Fallback render failed: {e}"}
 
-    except Exception as e:
+    except (
+        ValueError,
+        TypeError,
+        KeyError,
+        AttributeError,
+        OSError,
+        FileNotFoundError,
+    ) as e:
         response.status = 500
         return {"error": str(e)}
 

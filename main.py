@@ -13,18 +13,18 @@ from typing import Dict, Any, List, Optional
 from src.core.db import Database
 from src.core.checkpoint import CheckpointManager
 from src.utils.video_validator import VideoValidator
-from src.providers.video_processor import SmartVideoEditor
-from src.providers.transcript_analyzer import analyze_video_content
-from src.providers.smart_crop import apply_smart_crop
-from src.utils.budget_guard import (
+from src.providers.video_processor import VideoEditor as SmartVideoEditor
+from src.core.analyze_video import analyze_video as analyze_video_content
+from src.utils.intelligent_crop import (
+    create_intelligent_vertical_video as apply_smart_crop,
+)
+from src.core.cost import (
     budget_manager,
     BudgetExceededError,
     with_budget_tracking,
 )
 from src.core.metrics import metrics
-from src.utils.monitoring_integration import (
-    MonitoringServer,
-)
+from src.core.performance import PerformanceMonitor as MonitoringServer
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -410,7 +410,10 @@ def main():
                 )
 
             # Process job
-            logger.info(f"Processing job {job_id}...")
+            logger.info(
+                "Starting job processing from CLI",
+                extra={"job_id": job_id, "input_file": os.path.basename(args.input)},
+            )
             result = pipeline.process_job(job_id)
 
             # Print result
@@ -422,8 +425,27 @@ def main():
             status = pipeline.get_job_status(job_id)
             print(f"\nTotal cost: ${status['total_cost']:.2f}")
 
+            # Log final summary
+            logger.info(
+                "Pipeline execution completed",
+                extra={
+                    "job_id": job_id,
+                    "output_file": args.output,
+                    "total_cost": status["total_cost"],
+                    "final_status": status["status"],
+                },
+            )
+
     except Exception as e:
-        logger.error(f"Pipeline failed: {e}")
+        logger.error(
+            "Pipeline execution failed",
+            extra={
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "input_file": args.input if "args" in locals() else "unknown",
+            },
+            exc_info=True,
+        )
         sys.exit(1)
 
 

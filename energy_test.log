@@ -1,0 +1,101 @@
+/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/hub.py:111: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+2025-07-21 02:04:15,513 | INFO | src.config | ✅ OpenAI API key configured
+2025-07-21 02:04:15,513 | INFO | src.config | ✅ Anthropic API key configured
+2025-07-21 02:04:15,513 | INFO | src.config | ✅ Deepgram API key configured
+2025-07-21 02:04:15,513 | INFO | src.config | ✅ Config loaded - MAX_COST_USD: $5.0
+✅ DaVinci Resolve API available
+✅ Connected to DaVinci Resolve
+       Video Information        
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ Property    ┃ Value          ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ File        │ quick_test.mp4 │
+│ Duration    │ 60.0 seconds   │
+│ Size        │ 2.3 MB         │
+│ Resolution  │ 640x360        │
+│ FPS         │ 24.0           │
+│ Video Codec │ h264           │
+│ Audio Codec │ aac            │
+└─────────────┴────────────────┘
+
+🚀 Starting MCP server...
+Bottle v0.13.4 server starting up (using WSGIRefServer())...
+Listening on http://localhost:7801/
+Hit Ctrl-C to quit.
+
+127.0.0.1 - - [21/Jul/2025 02:04:17] "GET /health HTTP/1.1" 200 20
+🚀 Starting MCP bridge server on localhost:7801
+   DaVinci Resolve: Available
+   Endpoints: /buildTimeline, /renderProxy, /status, /health
+✅ MCP server started successfully
+
+🎬 Processing video in SMART mode
+   Video: quick_test.mp4
+📁 Output directory: /Users/hawzhin/Montage/output
+2025-07-21 02:04:18,715 | INFO | faster_whisper | Processing audio with duration 01:00.000
+2025-07-21 02:04:19,197 | INFO | faster_whisper | Detected language 'en' with probability 0.98
+2025-07-21 02:04:25,187 | INFO | httpx | HTTP Request: POST https://api.deepgram.com/v1/listen?diarize=true&language=en-US&model=nova-2&punctuate=true&smart_format=true&utterances=true "HTTP/1.1 200 OK"
+2025-07-21 02:04:25,222 | INFO | src.core.cost | API call to deepgram.nova-2: $0.0003 (total: $0.0003)
+🎬 Analyzing video: quick_test.mp4
+✅ Faster-whisper transcribed 108 words
+📤 Direct Deepgram upload (60.0s)
+✅ Deepgram transcribed 108 words
+🔧 Removed 2 duplicate words
+✅ ROVER merged 108 + 106 → 110 words
+🎤 Using Deepgram's speaker diarization with intelligent merging
+🔍 Raw Deepgram turns: 1 (before intelligent merging)
+✅ Intelligent diarization: 1 speaker turns (reduced from 1)
+✅ Video analysis complete: 110 words, 1 speaker turns
+📝 Transcript: 110 words, 1 speaker turns
+⠹ ✅ Video analysis complete
+2025-07-21 02:04:25,657 | INFO | src.core.highlight_selector | 🎯 Starting REAL highlight analysis (no fake AI)
+2025-07-21 02:04:25,658 | INFO | src.core.highlight_selector | 📊 Performing real local content scoring...
+2025-07-21 02:04:25,658 | INFO | src.core.highlight_selector | ⚙️ Running real local rule-based scoring...
+2025-07-21 02:04:25,658 | INFO | src.core.highlight_selector | ✅ Real local scoring generated 0 highlights
+2025-07-21 02:04:25,658 | WARNING | src.core.highlight_selector | No highlights found with local scoring
+🔧 Converted 110 words to 23 segments
+⠴ ✅ Highlights selected
+🎯 Selected 0 highlights (Cost: $0.000)
+⚠️  No highlights selected - check transcript quality
+   Using first 30 seconds as fallback
+✅ Created subtitle file: /Users/hawzhin/Montage/output/subtitles/subtitle_1.srt (4 lines)
+📄 Created 1 subtitle files
+⠋ ✅ Subtitles created
+✅ DaVinci timeline created
+🎬 Starting DaVinci Resolve render: /Users/hawzhin/Montage/output/Montage_1753052665_timeline.mp4
+..127.0.0.1 - - [21/Jul/2025 02:04:31] "POST /buildTimeline HTTP/1.1" 200 236
+
+✅ DaVinci Resolve render complete
+✅ Moved Montage_1753052665_timeline.mov to Montage_1753052665_timeline.mp4
+🎬 Timeline created: davinci_resolve_rendered
+⠴ ✅ Timeline built
+
+✅ Pipeline Completed Successfully!
+
+🎥 Output video created: 
+/Users/hawzhin/Montage/output/Montage_1753052665_timeline.mp4
+   Size: 32.89 MB
+
+📊 Analysis Summary:
+   • Words transcribed: 110
+   • Speaker turns: 1
+   • Transcript length: 644 characters
+
+🎯 Highlights Summary:
+   • Mode: SMART
+   • Clips selected: 1
+   • Total cost: $0.000
+              Top Highlights              
+┏━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━┓
+┃ Clip ┃ Title        ┃ Duration ┃ Score ┃
+┡━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━┩
+│ 1    │ Full Content │ 30.0s    │ 1.0   │
+└──────┴──────────────┴──────────┴───────┘
+
+🎬 Timeline Summary:
+   • Method: davinci_resolve_rendered
+   • Clips added: 1
+   • Output: /Users/hawzhin/Montage/output/Montage_1753052665_timeline.mp4
+
+💾 Full plan saved to: montage_plan_1753052671.json

@@ -89,10 +89,10 @@ def test_highlight_selection():
 
     mock_audio_energy = [0.6, 0.7, 0.8, 0.9, 0.8, 0.7, 0.6]
 
-    from src.highlight_selector import choose_highlights
+    from src.core.highlight_selector import select_highlights
 
     # Test smart mode
-    highlights = choose_highlights(mock_words, mock_audio_energy, "smart")
+    highlights = select_highlights(mock_words, mock_audio_energy, "smart")
 
     assert isinstance(highlights, list)
     assert len(highlights) > 0

@@ -1,14 +1,14 @@
-# Montage - AI-Powered Video Processing Pipeline
+# Montage - Professional Video Processing Pipeline
 
-Professional video highlight extraction using real AI intelligence.
+Production-ready video processing system with real transcription and intelligent cropping.
 
 ## Features
 
-- **AI Intelligence**: Real content analysis using Deepgram + OpenAI
-- **Vertical Format**: Automatic 1080x1920 output for social media
-- **Smart Highlights**: AI selects the most engaging segments
-- **Multi-Provider**: Fallback support for reliability
-- **Professional Quality**: Broadcast-ready encoding
+- **Real Transcription**: Whisper + Deepgram ASR with word-level timestamps
+- **Intelligent Cropping**: OpenCV face detection for optimal vertical format
+- **Professional Processing**: High-performance FFmpeg pipeline with FIFO streaming
+- **Budget Control**: Hard cost caps with real-time tracking
+- **Production Ready**: Comprehensive error handling, metrics, and monitoring
 
 ## Quick Start
 
@@ -39,11 +39,12 @@ python run_montage.py video.mp4 --info
 
 ## Core Components
 
-- `src/analyze_video.py` - Multi-provider transcription & analysis
-- `src/highlight_selector.py` - AI-powered highlight selection
-- `src/run_pipeline.py` - Main processing pipeline
-- `src/ffmpeg_utils.py` - Video processing utilities
-- `src/resolve_mcp.py` - DaVinci Resolve integration (optional)
+- `src/core/analyze_video.py` - Real Whisper/Deepgram transcription with ROVER merging
+- `src/core/highlight_selector.py` - Content analysis and segment selection
+- `src/providers/video_processor.py` - High-performance FIFO-based video processing
+- `src/utils/intelligent_crop.py` - OpenCV face detection and smart cropping
+- `src/core/metrics.py` - Comprehensive performance monitoring and tracking
+- `src/core/cost.py` - Budget enforcement with hard caps
 
 ## Output
 
