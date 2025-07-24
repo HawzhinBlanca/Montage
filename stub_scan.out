@@ -1,0 +1,5 @@
+# Phase 2 Stub Scan Verification
+# Command: grep -R "sys.path.append" montage/
+# Date: Fri Jul 25 01:27:21 +03 2025
+
+montage/providers/resolve_mcp.py:    # sys.path.append(RESOLVE_SCRIPT_API)

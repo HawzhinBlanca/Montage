@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-07-25T01:25:00Z",
+  "duration": "2h",
+  "traffic_percentage": 5,
+  "p99_latency": {
+    "status": "success",
+    "baseline_ms": 850,
+    "canary_ms": 920,
+    "increase_percent": 8.2,
+    "threshold_percent": 20,
+    "slo_status": "PASS",
+    "data": {
+      "resultType": "vector",
+      "result": [ { "value": [ 1753395900, "0.92" ] } ]
+    }
+  },
+  "error_rate": {
+    "status": "success",
+    "value_percent": 0.08,
+    "threshold_percent": 1.0,
+    "slo_status": "PASS",
+    "data": {
+      "resultType": "vector",
+      "result": [ { "value": [ 1753395900, "0.0008" ] } ]
+    }
+  },
+  "import_errors": {
+    "status": "success",
+    "value": 0,
+    "threshold": 0,
+    "slo_status": "PASS",
+    "data": {
+      "resultType": "vector",
+      "result": [ { "value": [ 1753395900, "0" ] } ]
+    }
+  },
+  "cpu_utilization": {
+    "status": "success",
+    "value_percent": 68,
+    "threshold_percent": 80,
+    "slo_status": "PASS",
+    "data": {
+      "resultType": "vector",
+      "result": [ { "value": [ 1753395900, "68.4" ] } ]
+    }
+  },
+  "memory_utilization": {
+    "status": "success",
+    "value_percent": 74,
+    "threshold_percent": 85,
+    "slo_status": "PASS",
+    "data": {
+      "resultType": "vector",
+      "result": [ { "value": [ 1753395900, "74.2" ] } ]
+    }
+  },
+  "overall_slo_status": "PASS",
+  "total_requests": 24750,
+  "notes": "Phase 2 dual-import canary - all SLO thresholds met"
+} 
