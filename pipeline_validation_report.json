@@ -1,0 +1,155 @@
+{
+  "smoke_test": {
+    "success": false,
+    "proof": {
+      "pipeline_execution": {
+        "status": "failed",
+        "error": "No output path returned from timeline creation",
+        "reason": "MCP server timeout and intelligent crop security restriction"
+      },
+      "components_verified": {
+        "transcription": {
+          "status": "success",
+          "words_transcribed": 36,
+          "speaker_turns": 2,
+          "proof": "Faster-whisper transcription completed"
+        },
+        "audio_normalization": {
+          "status": "success",
+          "before_lufs": -19.7,
+          "after_lufs": -16.0,
+          "proof": "Audio normalized: -19.7 → -16.0 LUFS"
+        },
+        "subtitle_generation": {
+          "status": "success",
+          "file_created": "/Users/hawzhin/Montage/output/subtitles/subtitle_1.srt",
+          "lines": 5
+        },
+        "highlight_selection": {
+          "status": "partial",
+          "highlights_found": 0,
+          "fallback_used": true,
+          "configured_keywords": 6
+        },
+        "video_rendering": {
+          "status": "failed",
+          "error": "Timeline creation failed due to MCP timeout"
+        }
+      },
+      "output_files": {
+        "video": {
+          "path": "/tmp/output.mp4",
+          "exists": false,
+          "size_kb": 0
+        },
+        "json_plan": {
+          "path": "montage_plan_*.json",
+          "exists": false
+        },
+        "subtitle": {
+          "path": "/Users/hawzhin/Montage/output/subtitles/subtitle_1.srt",
+          "exists": true,
+          "valid_timestamps": true
+        }
+      },
+      "cost_tracking": {
+        "api_calls": 1,
+        "total_cost": 0.0003,
+        "within_budget": true,
+        "budget_cap": 5.0
+      }
+    }
+  },
+  "code_issues": [
+    {
+      "file": "tests/edge_path_coverage.py",
+      "line": 1,
+      "issue": "Cyclomatic complexity >10 (score: 20)",
+      "fix": "Split test_all_edge_cases into smaller focused test methods"
+    },
+    {
+      "file": "montage/cli/run_pipeline.py",
+      "line": 278,
+      "issue": "Cyclomatic complexity >10 (score: 16)",
+      "fix": "Extract video processing steps into separate helper functions"
+    },
+    {
+      "file": "montage/core/analyze_video.py",
+      "line": 700,
+      "issue": "Cyclomatic complexity >10 (score: 15)",
+      "fix": "Split analyze_video into analyze_audio and analyze_transcript functions"
+    },
+    {
+      "file": "extract_transcript.py",
+      "line": 1,
+      "issue": "Hardcoded sys.path.append with absolute path",
+      "fix": "Remove sys.path manipulation and use 'python -m' execution"
+    },
+    {
+      "file": "montage/core/analyze_video.py",
+      "line": 602,
+      "issue": "except Exception: without logging",
+      "fix": "Add logger.exception() and re-raise or handle specific exceptions"
+    },
+    {
+      "file": "montage/utils/intelligent_crop.py",
+      "line": 869,
+      "issue": "except Exception: catch-all at top level",
+      "fix": "Handle specific exceptions (cv2.error, OSError) and log the error"
+    },
+    {
+      "file": "montage/core/diarization.py",
+      "line": 36,
+      "issue": "huggingface_token.get_secret_value() on None",
+      "fix": "Add null check: if hf_token and hasattr(hf_token, 'get_secret_value')"
+    },
+    {
+      "file": "montage/utils/intelligent_crop.py",
+      "line": 667,
+      "issue": "Path validation too restrictive for /tmp",
+      "fix": "Use centralized PathSanitizer from security module"
+    },
+    {
+      "file": "montage/providers/concat_editor.py",
+      "line": 80,
+      "issue": "subprocess.run without timeout",
+      "fix": "Add timeout parameter to all subprocess.run calls"
+    },
+    {
+      "file": "montage/core/highlight_selector.py",
+      "line": 174,
+      "issue": "Hardcoded keywords moved to settings but still defaults exist",
+      "fix": "Load keywords from environment variable with no hardcoded defaults"
+    }
+  ],
+  "recommendations": {
+    "immediate": [
+      "Fix diarization null check to prevent AttributeError",
+      "Replace intelligent_crop path validation with centralized security module",
+      "Add timeouts to all subprocess calls"
+    ],
+    "short_term": [
+      "Refactor high-complexity functions",
+      "Add specific exception handling with proper logging",
+      "Remove all sys.path manipulations"
+    ],
+    "long_term": [
+      "Implement comprehensive test coverage for uncovered modules",
+      "Add performance profiling for O(n²) operations",
+      "Replace all print() statements with structured logging"
+    ]
+  },
+  "security_summary": {
+    "positive": [
+      "Path traversal protection implemented",
+      "SQL injection prevention via parameterized queries",
+      "Sensitive data masking in logs",
+      "Budget cap enforcement prevents cost overruns"
+    ],
+    "concerns": [
+      "Some subprocess calls bypass security manager",
+      "Broad exception handlers could hide security issues",
+      "Path validation too restrictive affecting functionality"
+    ]
+  }
+}

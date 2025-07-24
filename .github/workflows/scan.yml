@@ -1,0 +1,19 @@
+name: Scan for legacy sys.path hacks
+
+on:
+  pull_request:
+    paths:
+      - 'montage/**.py'
+      - '.github/workflows/scan.yml'
+
+jobs:
+  stub_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce no sys.path hacks
+        run: |
+          if grep -R "sys.path.append" montage/ | grep -v tests; then
+            echo "Legacy sys.path hack found" >&2
+            exit 1
+          fi 

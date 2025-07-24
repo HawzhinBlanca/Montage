@@ -15,6 +15,14 @@ from unittest.mock import Mock, patch, MagicMock
 from contextlib import contextmanager
 from typing import Generator, Dict, Any, Optional
 
+# Clear Prometheus registry before tests to prevent collisions
+try:
+    from prometheus_client import REGISTRY
+    REGISTRY._collector_to_names.clear()
+    REGISTRY._names_to_collectors.clear()
+except ImportError:
+    pass
+
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 import redis

@@ -1,0 +1,15 @@
+{
+  "source_video_path": "test_video.mp4",
+  "clips": [
+    {
+      "start_time": 0,
+      "end_time": 10,
+      "effects": ["fade_in"]
+    },
+    {
+      "start_time": 20,
+      "end_time": 30,
+      "effects": ["fade_out"]
+    }
+  ]
+}
