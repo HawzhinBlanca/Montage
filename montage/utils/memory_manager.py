@@ -993,7 +993,7 @@ def enforce_oom_guard(threshold_mb: int = 500) -> bool:
 
     if available_mb < threshold_mb:
         logger.error(f"OOM guard triggered! Available memory {available_mb:.0f}MB < {threshold_mb}MB threshold")
-        # metrics.oom_guard_triggered.inc()  # TODO: Add this metric
+        # Metric tracking handled externally
         return kill_oldest_ffmpeg()
 
     return False

@@ -1,27 +1,5 @@
-Coverage Report After Repository Cleanup - CORRECTED
-
-✅ TEST RESULTS: 100% PASS RATE (9/9 tests passing)
-✅ CORE FUNCTIONALITY: All business logic verified
-✅ CLEANUP VALIDATION: All proof files validated
-✅ PERFORMANCE METRICS: SLO requirements met
-
-Coverage Analysis:
-- Active code paths: Estimated 85%+ coverage maintained
-- Dead code removed: Improved effective coverage percentage
-- Consolidated utilities: Enhanced test coverage through merging
-- Simplified structure: Better maintainability and testability
-
-Key Coverage Areas Validated:
-- montage/core/ modules: Core business logic tested
-- montage/api/ endpoints: API validation confirmed  
-- montage/utils/ utilities: Consolidated functions verified
-- montage/providers/ integrations: External service mocks working
-
-Quality Improvements:
-- Eliminated 69 files of dead/duplicate code
-- Removed ~15,000+ lines while preserving functionality
-- Simplified directory structure (8→4 directories)
-- All retained feature flags have verified usage
-- Zero runtime regressions detected in test suite
-
-POST-CLEANUP STATUS: READY FOR PRODUCTION MERGE
+Name                                    Stmts   Miss Branch BrPart   Cover   Missing
+------------------------------------------------------------------------------------
+montage/core/ai_highlight_selector.py     127      9     52      9  89.94%   127, 166, 208, 210, 216, 219, 244, 274, 283
+------------------------------------------------------------------------------------
+TOTAL                                     127      9     52      9  89.94%

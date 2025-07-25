@@ -1,6 +1,11 @@
+import os
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, MagicMock
+
+@pytest.fixture(autouse=True, scope="session")
+def _bootstrap_env():
+    os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 
 
 @pytest.fixture(autouse=True)

@@ -1,0 +1,12 @@
+.....                                                                    [100%]/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/coverage/inorout.py:503: CoverageWarning: Module montage.core.analyze_video was never imported. (module-not-imported)
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+
+
+---------- coverage: platform darwin, python 3.11.5-final-0 ----------
+Name                                    Stmts   Miss Branch BrPart   Cover   Missing
+------------------------------------------------------------------------------------
+montage/core/ai_highlight_selector.py     135     17     60     13  84.62%   48, 57, 94, 124-127, 132, 163-166, 208, 210, 216, 219, 244, 274, 283
+------------------------------------------------------------------------------------
+TOTAL                                     135     17     60     13  84.62%
+
+5 passed in 1.91s

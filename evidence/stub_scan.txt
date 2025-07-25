@@ -1,0 +1,5 @@
+Found 3 stub implementations:
+
+/Users/hawzhin/Montage/montage/providers/smart_track.py:25 - register_temp_file (stub)
+/Users/hawzhin/Montage/montage/providers/smart_track.py:29 - register_directory (stub)
+/Users/hawzhin/Montage/montage/utils/memory_manager.py:996 - N/A (TODO)

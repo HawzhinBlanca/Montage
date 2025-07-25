@@ -27,24 +27,42 @@ from rich.table import Table
 # from ..providers.resolve_mcp import start_server
 # Lazy import to avoid hanging
 # from ..providers.video_processor import VideoEditor
-from ..utils.ffmpeg_utils import (
-    create_subtitle_file,
-    get_video_info,
-)
-from ..core.security import sanitize_path, PathTraversalError, validate_filename
-from ..core.exceptions import (
-    VideoProcessingError,
-    InvalidVideoFormatError,
-    VideoTooLargeError,
-    TranscriptionError,
-    ErrorHandler,
-)
-
-# Added required runtime imports for completeness
-from ..core.highlight_selector import select_highlights
-from ..core.plan import generate_plan_from_highlights
-from ..core.quality_validator import QualityValidationError, enforce_production_quality
-from ..providers.resolve_mcp import start_server
+try:
+    # Try relative imports first (when run as module)
+    from ..utils.ffmpeg_utils import (
+        create_subtitle_file,
+        get_video_info,
+    )
+    from ..core.security import sanitize_path, PathTraversalError, validate_filename
+    from ..core.exceptions import (
+        VideoProcessingError,
+        InvalidVideoFormatError,
+        VideoTooLargeError,
+        TranscriptionError,
+        ErrorHandler,
+    )
+    from ..core.highlight_selector import select_highlights
+    from ..core.plan import generate_plan_from_highlights
+    from ..core.quality_validator import QualityValidationError, enforce_production_quality
+    from ..providers.resolve_mcp import start_server
+except ImportError:
+    # Fall back to absolute imports (when run directly)
+    from montage.utils.ffmpeg_utils import (
+        create_subtitle_file,
+        get_video_info,
+    )
+    from montage.core.security import sanitize_path, PathTraversalError, validate_filename
+    from montage.core.exceptions import (
+        VideoProcessingError,
+        InvalidVideoFormatError,
+        VideoTooLargeError,
+        TranscriptionError,
+        ErrorHandler,
+    )
+    from montage.core.highlight_selector import select_highlights
+    from montage.core.plan import generate_plan_from_highlights
+    from montage.core.quality_validator import QualityValidationError, enforce_production_quality
+    from montage.providers.resolve_mcp import start_server
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +72,10 @@ console = Console()
 def extract_audio_rms(video_path: str, normalize: bool = True) -> List[float]:
     """Extract audio RMS energy levels from video file with optional normalization"""
     # Check if audio normalization is enabled
-    from ..settings import get_settings
+    try:
+        from ..settings import get_settings
+    except ImportError:
+        from montage.settings import get_settings
     settings = get_settings()
     
     # Normalize audio if enabled

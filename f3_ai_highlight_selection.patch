@@ -1,0 +1,259 @@
+diff --git a/montage/core/analyze_video.py b/montage/core/analyze_video.py
+index 1234567..abcdefg 100644
+--- a/montage/core/analyze_video.py
++++ b/montage/core/analyze_video.py
+@@ -5,8 +5,11 @@ from typing import List, Dict
+ import logging
+ from .real_whisper_transcriber import RealWhisperTranscriber
+ from .speaker_diarizer import SpeakerDiarizer
++from .ai_highlight_selector import AIHighlightSelector, StoryBeatDetector
++import asyncio
+ 
+ logger = logging.getLogger(__name__)
++
+ SCENE_THRESHOLD = 30.0  # adjust per your content
+ 
+ def extract_frames(video_path: str, interval: float = 1.0) -> List[np.ndarray]:
+@@ -121,42 +124,116 @@ def analyze_video(video_path: str, use_premium: bool = False) -> Dict:
+     except Exception as e:
+         logger.warning(f"Speaker diarization failed: {e}")
+         
+-    # Generate smart highlights
++    # Generate smart highlights using AI if available
+     highlights = []
+-    if transcript:
+-        # Use transcript for intelligent highlight selection
+-        for i, segment in enumerate(transcript[:5]):  # Top 5 segments
+-            if len(segment.get("text", "").split()) > 5:  # Meaningful segments
+-                highlight = {
+-                    "start": segment["start"],
+-                    "end": segment["end"],
+-                    "score": 0.9 - (i * 0.1),
+-                    "text": segment.get("text", "")[:100],
+-                    "type": "transcript_based"
+-                }
+-                # Add speaker if available
+-                if "speaker" in segment:
+-                    highlight["speaker"] = segment["speaker"]
+-                highlights.append(highlight)
++    story_beats = []
++    
++    if transcript and use_premium:
++        try:
++            # Use AI for intelligent highlight selection
++            ai_selector = AIHighlightSelector()
++            
++            # Get video duration
++            cap = cv2.VideoCapture(video_path)
++            fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
++            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
++            video_duration = frame_count / fps if fps > 0 else 0
++            cap.release()
++            
++            # Run AI selection (async)
++            async def run_ai_selection():
++                return await ai_selector.select_highlights(
++                    {"segments": transcript},
++                    video_duration,
++                    target_clips=5
++                )
++            
++            # Execute async function
++            ai_highlights = asyncio.run(run_ai_selection())
++            
++            # Convert to standard format
++            for ai_hl in ai_highlights:
++                highlight = {
++                    "start": ai_hl.start,
++                    "end": ai_hl.end,
++                    "score": ai_hl.score,
++                    "title": ai_hl.title,
++                    "text": ai_hl.reason,
++                    "type": "ai_selected",
++                    "story_beat": ai_hl.story_beat,
++                    "emotions": ai_hl.emotions,
++                    "keywords": ai_hl.keywords
++                }
++                highlights.append(highlight)
++                
++            # Also detect story beats
++            beat_detector = StoryBeatDetector()
++            story_beats = beat_detector.detect_beats({"segments": transcript})
++            
++        except Exception as e:
++            logger.warning(f"AI highlight selection failed: {e}, falling back to basic selection")
++            # Fall back to basic transcript-based selection
++            for i, segment in enumerate(transcript[:5]):
++                if len(segment.get("text", "").split()) > 5:
++                    highlight = {
++                        "start": segment["start"],
++                        "end": segment["end"],
++                        "score": 0.9 - (i * 0.1),
++                        "text": segment.get("text", "")[:100],
++                        "type": "transcript_based"
++                    }
++                    if "speaker" in segment:
++                        highlight["speaker"] = segment["speaker"]
++                    highlights.append(highlight)
++    
++    elif transcript:
++        # Basic transcript-based selection without AI
++        for i, segment in enumerate(transcript[:5]):
++            if len(segment.get("text", "").split()) > 5:
++                highlight = {
++                    "start": segment["start"],
++                    "end": segment["end"],
++                    "score": 0.9 - (i * 0.1),
++                    "text": segment.get("text", "")[:100],
++                    "type": "transcript_based"
++                }
++                if "speaker" in segment:
++                    highlight["speaker"] = segment["speaker"]
++                highlights.append(highlight)
+     else:
+         # Fallback to scene-based highlights
+         for i, scene_idx in enumerate(content["scene_changes"][:5]):
+             highlights.append({
+                 "start": float(scene_idx),
+                 "end": float(scene_idx + 5.0),
+                 "score": 0.8 - (i * 0.1),
+                 "type": "scene_change"
+             })
+     
+     return {
+         "highlights": highlights,
+         "analysis": content,
+         "transcript": transcript,
+         "words": words,
+         "speaker_segments": speaker_segments,
+-        "speaker_turns": speaker_turns
++        "speaker_turns": speaker_turns,
++        "story_beats": story_beats
+     }
+diff --git a/tests/test_ai_highlight_selector.py b/tests/test_ai_highlight_selector.py
+new file mode 100644
+index 0000000..1234567
+--- /dev/null
++++ b/tests/test_ai_highlight_selector.py
+@@ -0,0 +1,121 @@
++import os
++import pytest
++import asyncio
++from unittest.mock import Mock, patch, MagicMock
++
++
++def test_ai_highlight_init():
++    """Test AI highlight selector initialization"""
++    from montage.core.ai_highlight_selector import AIHighlightSelector
++    
++    # Mock the API clients
++    with patch('montage.core.ai_highlight_selector.anthropic.Anthropic') as mock_anthropic:
++        with patch('montage.core.ai_highlight_selector.genai.configure') as mock_genai:
++            # Set env vars
++            os.environ["ANTHROPIC_API_KEY"] = "test-key"
++            os.environ["GEMINI_API_KEY"] = "test-key"
++            
++            selector = AIHighlightSelector()
++            
++            # Check initialization
++            assert selector.claude_client is not None
++            assert selector.gemini_model is not None
++
++
++def test_story_beat_detector():
++    """Test story beat detection"""
++    from montage.core.ai_highlight_selector import StoryBeatDetector
++    
++    detector = StoryBeatDetector()
++    
++    # Test transcript
++    transcript = {
++        "segments": [
++            {"text": "Let me tell you about something amazing", "start": 0, "end": 5},
++            {"text": "It started when I was young", "start": 5, "end": 10},
++            {"text": "Then everything changed suddenly", "start": 10, "end": 15},
++            {"text": "In the end, I learned a valuable lesson", "start": 15, "end": 20}
++        ]
++    }
++    
++    beats = detector.detect_beats(transcript)
++    
++    assert len(beats) == 4
++    assert beats[0][0] == "hook"
++    assert beats[1][0] == "context"
++    assert beats[2][0] == "climax"
++    assert beats[3][0] == "resolution"
++
++
++def test_highlight_segment_dataclass():
++    """Test HighlightSegment dataclass"""
++    from montage.core.ai_highlight_selector import HighlightSegment
++    
++    segment = HighlightSegment(
++        start=10.0,
++        end=40.0,
++        score=0.9,
++        title="Amazing moment",
++        reason="High engagement",
++        story_beat="climax",
++        emotions=["joy", "surprise"],
++        keywords=["amazing", "moment"]
++    )
++    
++    assert segment.start == 10.0
++    assert segment.end == 40.0
++    assert segment.score == 0.9
++    assert segment.story_beat == "climax"
++    assert "joy" in segment.emotions
++
++
++@pytest.mark.asyncio
++async def test_ai_selection_mock():
++    """Test AI highlight selection with mocked responses"""
++    from montage.core.ai_highlight_selector import AIHighlightSelector
++    
++    # Mock the API clients
++    with patch('montage.core.ai_highlight_selector.anthropic.Anthropic') as mock_anthropic:
++        with patch('montage.core.ai_highlight_selector.genai') as mock_genai:
++            # Set env vars
++            os.environ["ANTHROPIC_API_KEY"] = "test-key"
++            os.environ["GEMINI_API_KEY"] = "test-key"
++            
++            # Mock Claude response
++            mock_claude_response = MagicMock()
++            mock_claude_response.content = [MagicMock(text='{"highlights": [{"start": 10, "end": 30, "title": "Test", "viral_potential": 0.8}]}')]
++            mock_anthropic.return_value.messages.create.return_value = mock_claude_response
++            
++            # Mock Gemini response
++            mock_gemini_response = MagicMock()
++            mock_gemini_response.text = '{"segments": [{"start_time": 40, "end_time": 60, "title": "Test2", "viral_score": 0.7}]}'
++            mock_genai.GenerativeModel.return_value.generate_content.return_value = mock_gemini_response
++            
++            selector = AIHighlightSelector()
++            
++            # Test transcript
++            transcript = {
++                "segments": [
++                    {"text": "This is a test", "start": 0, "end": 5},
++                    {"text": "Another segment", "start": 5, "end": 10}
++                ]
++            }
++            
++            highlights = await selector.select_highlights(transcript, 120.0, 2)
++            
++            assert len(highlights) > 0
++            assert highlights[0].start >= 0
++
++
++def test_keyword_extraction():
++    """Test keyword extraction from text"""
++    from montage.core.ai_highlight_selector import AIHighlightSelector
++    
++    selector = AIHighlightSelector()
++    keywords = selector._extract_keywords("This is an amazing test with important keywords and wonderful phrases")
++    
++    assert "amazing" in keywords
++    assert "important" in keywords
++    assert len(keywords) <= 5  # Should return top 5
++    assert all(len(k) > 3 for k in keywords)  # All keywords should be > 3 chars
++    assert "the" not in keywords  # Stopword should be filtered
