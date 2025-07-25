@@ -9,12 +9,10 @@ For security compliance, this script provides instructions and partial automatio
 rather than directly accessing billing APIs (which would require additional credentials).
 """
 
-import os
-import json
 import logging
-from datetime import datetime, timedelta
+import os
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -26,14 +24,14 @@ logger = logging.getLogger(__name__)
 class BillingChecker:
     """
     P0-06: Automated billing verification for exposed API key incident
-    
+
     Provides guided process to check for unauthorized usage across:
     - OpenAI GPT/Whisper APIs
-    - Anthropic Claude APIs  
+    - Anthropic Claude APIs
     - Google/Gemini APIs
     - Deepgram Speech APIs
     """
-    
+
     def __init__(self):
         self.providers = {
             "openai": {
@@ -44,7 +42,7 @@ class BillingChecker:
                 "risk_level": "HIGH"
             },
             "anthropic": {
-                "name": "Anthropic", 
+                "name": "Anthropic",
                 "dashboard_url": "https://console.anthropic.com/dashboard",
                 "billing_url": "https://console.anthropic.com/account/billing",
                 "api_key_env": "ANTHROPIC_API_KEY",
@@ -52,7 +50,7 @@ class BillingChecker:
             },
             "google": {
                 "name": "Google Cloud/Gemini",
-                "dashboard_url": "https://console.cloud.google.com/apis/dashboard", 
+                "dashboard_url": "https://console.cloud.google.com/apis/dashboard",
                 "billing_url": "https://console.cloud.google.com/billing",
                 "api_key_env": "GEMINI_API_KEY",
                 "risk_level": "MEDIUM"
@@ -61,14 +59,14 @@ class BillingChecker:
                 "name": "Deepgram",
                 "dashboard_url": "https://console.deepgram.com/usage",
                 "billing_url": "https://console.deepgram.com/billing",
-                "api_key_env": "DEEPGRAM_API_KEY", 
+                "api_key_env": "DEEPGRAM_API_KEY",
                 "risk_level": "MEDIUM"
             }
         }
-        
+
         self.incident_date = datetime(2025, 1, 21)  # Approximate date keys were exposed
         self.check_period_days = 60  # Check last 60 days for suspicious activity
-        
+
     def print_security_banner(self):
         """Print security incident banner"""
         print("=" * 80)
@@ -76,19 +74,19 @@ class BillingChecker:
         print("=" * 80)
         print(f"Incident Date: {self.incident_date.strftime('%Y-%m-%d')}")
         print(f"Check Period: Last {self.check_period_days} days")
-        print(f"Risk Assessment: API keys were exposed in git history")
+        print("Risk Assessment: API keys were exposed in git history")
         print("=" * 80)
         print()
-        
+
     def check_env_keys_status(self):
         """Check current status of API keys in environment"""
         print("📋 CURRENT API KEY STATUS CHECK")
         print("-" * 50)
-        
-        for provider_id, config in self.providers.items():
+
+        for _provider_id, config in self.providers.items():
             env_var = config["api_key_env"]
             current_key = os.environ.get(env_var, "NOT_SET")
-            
+
             if current_key == "NOT_SET":
                 status = "❌ NOT SET"
             elif "PLACEHOLDER" in current_key:
@@ -97,25 +95,25 @@ class BillingChecker:
                 status = "⚠️ LOOKS LIKE REAL KEY - VERIFY ROTATION"
             else:
                 status = "❓ UNKNOWN FORMAT"
-                
+
             print(f"{config['name']:20} ({env_var}): {status}")
-            
+
         print()
-        
+
     def generate_manual_checklist(self):
         """Generate manual verification checklist"""
         print("📝 MANUAL BILLING VERIFICATION CHECKLIST")
         print("-" * 50)
         print()
-        
-        for provider_id, config in self.providers.items():
+
+        for _provider_id, config in self.providers.items():
             print(f"🔍 {config['name']} ({config['risk_level']} RISK)")
             print(f"   Dashboard: {config['dashboard_url']}")
             print(f"   Billing:   {config['billing_url']}")
             print()
             print("   Manual Steps:")
             print("   1. Log into the dashboard using your account credentials")
-            print(f"   2. Navigate to Usage/Billing section")
+            print("   2. Navigate to Usage/Billing section")
             print(f"   3. Export usage data for {self.incident_date.strftime('%Y-%m-%d')} to present")
             print("   4. Look for:")
             print("      - Unusual spikes in API calls")
@@ -124,17 +122,17 @@ class BillingChecker:
             print("      - Any charges you don't recognize")
             print("   5. Save screenshots and CSV exports to documentation/billing_evidence/")
             print()
-            
+
     def create_evidence_directory(self):
         """Create directory structure for billing evidence"""
         evidence_dir = Path("documentation/billing_evidence")
         evidence_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create subdirectories for each provider
         for provider_id, config in self.providers.items():
             provider_dir = evidence_dir / provider_id
             provider_dir.mkdir(exist_ok=True)
-            
+
             # Create README for each provider
             readme_path = provider_dir / "README.md"
             readme_content = f"""# {config['name']} Billing Evidence
@@ -146,7 +144,7 @@ class BillingChecker:
 
 ## Required Evidence
 1. Usage dashboard screenshots (last 60 days)
-2. Billing overview screenshots 
+2. Billing overview screenshots
 3. CSV export of API usage data
 4. Any suspicious activity reports
 
@@ -156,21 +154,21 @@ class BillingChecker:
 
 ## Files to Upload
 - `usage_screenshot_YYYY-MM-DD.png`
-- `billing_screenshot_YYYY-MM-DD.png` 
+- `billing_screenshot_YYYY-MM-DD.png`
 - `usage_export_YYYY-MM-DD.csv`
 - `suspicious_activity.txt` (if any found)
 """
-            
+
             with open(readme_path, 'w') as f:
                 f.write(readme_content)
-                
+
         logger.info(f"✅ Evidence directory structure created at: {evidence_dir}")
-        
+
     def generate_verification_report_template(self):
         """Generate template for verification report"""
         report_path = Path("documentation/billing_verification_report.md")
         report_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         report_content = f"""# API Key Exposure Billing Verification Report
 
 **Report Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}
@@ -186,12 +184,12 @@ class BillingChecker:
 ## Provider Verification Status
 
 """
-        
+
         for provider_id, config in self.providers.items():
             report_content += f"""### {config['name']} ({config['risk_level']} Risk)
 
 **Dashboard Checked**: [ ] Yes [ ] No
-**Billing Reviewed**: [ ] Yes [ ] No  
+**Billing Reviewed**: [ ] Yes [ ] No
 **Evidence Collected**: [ ] Yes [ ] No
 
 **Usage Summary**:
@@ -210,21 +208,21 @@ class BillingChecker:
 ---
 
 """
-        
+
         report_content += """## Findings and Recommendations
 
 ### Unauthorized Usage Detected
 <!-- Complete if suspicious activity found -->
-- **Provider**: 
-- **Time Period**: 
-- **Details**: 
+- **Provider**:
+- **Time Period**:
+- **Details**:
 - **Estimated Cost Impact**: $
 - **Immediate Actions Taken**:
 
 ### Overall Assessment
 <!-- Complete after all providers checked -->
 - **Total Financial Impact**: $
-- **Security Risk Assessment**: 
+- **Security Risk Assessment**:
 - **Additional Actions Required**:
 
 ### Next Steps
@@ -234,36 +232,36 @@ class BillingChecker:
 - [ ] Document lessons learned
 
 ## Verification Completed By
-**Name**: 
-**Date**: 
-**Signature**: 
+**Name**:
+**Date**:
+**Signature**:
 
 ---
 *This report documents the billing verification process following the API key exposure incident.*
 """
-        
+
         with open(report_path, 'w') as f:
             f.write(report_content)
-            
+
         logger.info(f"✅ Verification report template created at: {report_path}")
-        
+
     def run_verification_process(self):
         """Run complete billing verification process"""
         print()
         self.print_security_banner()
-        
+
         # Check current environment status
         self.check_env_keys_status()
-        
+
         # Create evidence collection structure
         self.create_evidence_directory()
-        
+
         # Generate report template
         self.generate_verification_report_template()
-        
+
         # Provide manual verification steps
         self.generate_manual_checklist()
-        
+
         print("🎯 NEXT STEPS")
         print("-" * 50)
         print("1. Complete manual verification for each provider")
@@ -278,7 +276,7 @@ class BillingChecker:
         print("📁 Evidence collection directory: documentation/billing_evidence/")
         print("📋 Report template: documentation/billing_verification_report.md")
         print()
-        
+
 if __name__ == "__main__":
     checker = BillingChecker()
     checker.run_verification_process()

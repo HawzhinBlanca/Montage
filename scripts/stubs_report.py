@@ -36,4 +36,4 @@ if critical:
 else:
     if REPORT.exists():
         REPORT.unlink()
-    print("No stubs found") 
+    print("No stubs found")

@@ -24,8 +24,6 @@ try:
     from ..core.metrics import metrics
     from ..utils.logging_config import get_logger
 except ImportError:
-    import sys
-    from pathlib import Path
 
     from montage.core.metrics import metrics
     from montage.utils.logging_config import get_logger
@@ -462,7 +460,7 @@ class AdaptiveProcessingConfig:
         import psutil
         total_cores = psutil.cpu_count(logical=True)
         total_ram_gb = psutil.virtual_memory().total / (1024**3)
-        
+
         # Optimize for high-end systems (M4 Max, etc.)
         if total_ram_gb >= 32 and total_cores >= 12:
             return {
@@ -557,7 +555,7 @@ class AdaptiveProcessingConfig:
             import psutil
             total_cores = psutil.cpu_count(logical=True)
             total_ram_gb = psutil.virtual_memory().total / (1024**3)
-            
+
             if total_ram_gb >= 32 and total_cores >= 12:
                 # M4 Max Beast Mode
                 config.update(
@@ -646,7 +644,7 @@ def memory_optimized(max_memory_mb: Optional[int] = None):
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            with memory_guard(max_memory_mb=max_memory_mb) as monitor:
+            with memory_guard(max_memory_mb=max_memory_mb):
                 return func(*args, **kwargs)
 
         return wrapper
@@ -679,7 +677,7 @@ class StreamingVideoProcessor:
 
             # Determine chunk size based on memory availability
             if chunk_duration is None:
-                current_config = self.config.get_current_config()
+                self.config.get_current_config()
                 # Calculate chunk duration based on available memory and file size
                 file_size_mb = os.path.getsize(video_path) / 1024 / 1024
                 memory_per_mb = 2.0  # Rough estimate: 2MB RAM per MB of video
@@ -704,7 +702,7 @@ class StreamingVideoProcessor:
             while current_time < duration:
                 end_time = min(current_time + chunk_duration, duration)
 
-                with memory_guard() as chunk_monitor:
+                with memory_guard():
                     logger.debug(
                         f"Processing chunk {chunk_index + 1}: {current_time:.1f}s - {end_time:.1f}s"
                     )
@@ -942,6 +940,63 @@ def _cleanup_handler(signum, frame):
 # Register signal handlers
 signal.signal(signal.SIGINT, _cleanup_handler)
 signal.signal(signal.SIGTERM, _cleanup_handler)
+
+
+def get_available_mb() -> float:
+    """Get available memory in MB - for testing/mocking"""
+    try:
+        return psutil.virtual_memory().available / 1024 / 1024
+    except Exception:
+        return 2048.0  # Default 2GB
+
+
+def kill_oldest_ffmpeg() -> bool:
+    """Kill the oldest FFmpeg process to free memory"""
+    try:
+        # Find all FFmpeg processes
+        ffmpeg_procs = []
+        for proc in psutil.process_iter(['pid', 'name', 'create_time', 'cmdline']):
+            try:
+                if proc.info['name'] and 'ffmpeg' in proc.info['name'].lower():
+                    ffmpeg_procs.append(proc)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
+        if not ffmpeg_procs:
+            logger.info("No FFmpeg processes found to kill")
+            return False
+
+        # Sort by creation time (oldest first)
+        ffmpeg_procs.sort(key=lambda p: p.info['create_time'])
+        oldest = ffmpeg_procs[0]
+
+        logger.warning(f"Killing oldest FFmpeg process: PID {oldest.pid}")
+        oldest.terminate()
+
+        # Wait for graceful termination
+        try:
+            oldest.wait(timeout=5)
+        except psutil.TimeoutExpired:
+            logger.warning(f"Force killing FFmpeg process {oldest.pid}")
+            oldest.kill()
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Error killing FFmpeg process: {e}")
+        return False
+
+
+def enforce_oom_guard(threshold_mb: int = 500) -> bool:
+    """Enforce OOM guard - kill FFmpeg if memory below threshold"""
+    available_mb = get_available_mb()
+
+    if available_mb < threshold_mb:
+        logger.error(f"OOM guard triggered! Available memory {available_mb:.0f}MB < {threshold_mb}MB threshold")
+        # metrics.oom_guard_triggered.inc()  # TODO: Add this metric
+        return kill_oldest_ffmpeg()
+
+    return False
 
 
 if __name__ == "__main__":

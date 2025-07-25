@@ -1,0 +1,5 @@
+# Duplicate File Report
+
+## Duplicate group (hash: d41d8cd9)
+- montage/api/__init__.py
+- montage/tests/__init__.py

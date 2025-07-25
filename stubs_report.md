@@ -10,16 +10,22 @@ create_professional_story_video.py:190: pass
 create_professional_story_video.py:194: pass
 create_smart_story.py:386: pass
 create_smart_story.py:390: pass
-montage/core/checkpoint.py:70: password=parsed.password,
+montage/core/checkpoint.py:68: password=parsed.password,
 montage/core/security.py:488: password.encode('utf-8'),
-montage/core/resource_watchdog.py:424: pass  # File not in registry
-montage/core/resource_watchdog.py:487: pass  # Could add success-specific cleanup here
-montage/utils/ffmpeg_process_manager.py:572: pass  # Process completion handled in context manager
-montage/api/web_server.py:77: pass  # Fallback to IP-only rate limiting
+montage/api/web_server.py:68: pass  # Fallback to IP-only rate limiting
+montage/api/web_server.py:99: pass
 backup_removed_fake_components/create_full_story_video.py:576: pass
 backup_removed_fake_components/create_full_story_video.py:580: pass
 backup_removed_fake_components/create_full_story_video.py:694: pass
 backup_removed_fake_components/create_perfect_video.py:324: pass
+scripts/identify_dead_code.py:33: pass
+scripts/identify_dead_code.py:68: pass
+scripts/evaluate_perf_guard.py:47: passed = current_p95 <= threshold
+scripts/evaluate_perf_guard.py:77: passed = peak_cpu < threshold
+scripts/evaluate_perf_guard.py:109: passed = growth_pct <= threshold_pct
+scripts/evaluate_perf_guard.py:138: passed = error_rate < threshold
+scripts/repo_scan.py:97: pass
+scripts/repo_scan.py:129: pass
 scripts/evaluate_canary.py:52: passed = increase_pct <= threshold
 scripts/evaluate_canary.py:68: passed = error_rate_pct < threshold
 scripts/evaluate_canary.py:78: passed = import_errors <= threshold

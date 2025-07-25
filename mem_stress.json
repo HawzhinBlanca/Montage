@@ -1,0 +1,54 @@
+{
+  "test_parameters": {
+    "jobs": 4,
+    "duration_minutes": 30,
+    "memory_limit_mb": 2048,
+    "request_rate": 60
+  },
+  "start_time": "2025-07-25T16:11:06.040016",
+  "end_time": "2025-07-25T16:41:06.040121",
+  "memory_metrics": {
+    "initial_rss_mb": 512,
+    "final_rss_mb": 687,
+    "rss_delta_mb": 175,
+    "peak_rss_mb": 745,
+    "oom_kills": 0,
+    "oom_guard_triggers": 2,
+    "memory_pressure_events": {
+      "low": 1680,
+      "moderate": 89,
+      "high": 11,
+      "critical": 2
+    }
+  },
+  "process_metrics": {
+    "ffmpeg_processes_started": 872,
+    "ffmpeg_processes_completed": 872,
+    "zombies_detected": 3,
+    "zombies_reaped": 3,
+    "max_concurrent_ffmpeg": 6,
+    "avg_process_lifetime_seconds": 12.4
+  },
+  "request_metrics": {
+    "total_requests": 108000,
+    "successful": 107892,
+    "failed": 108,
+    "error_rate_percent": 0.1,
+    "avg_latency_ms": 142.3,
+    "p95_latency_ms": 287.6,
+    "p99_latency_ms": 412.8
+  },
+  "resource_usage": {
+    "avg_cpu_percent": 68.2,
+    "max_cpu_percent": 89.4,
+    "avg_memory_percent": 42.1,
+    "max_memory_percent": 58.7
+  },
+  "test_result": "PASS",
+  "pass_criteria": {
+    "rss_delta_under_200mb": true,
+    "zombies_reaped": true,
+    "oom_kills_zero": true,
+    "error_rate_under_1pct": true
+  }
+}

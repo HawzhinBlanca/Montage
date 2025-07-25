@@ -8,19 +8,20 @@ import json
 import random
 from datetime import datetime, timezone
 
+
 def generate_baseline_metrics():
     """Generate realistic baseline metrics for both apps"""
-    
+
     # Simulate different traffic patterns
     # Public API: High volume, customer-facing
     # Admin API: Low volume, internal use
-    
+
     public_req_rate = random.uniform(45.5, 52.3)  # req/s
     admin_req_rate = random.uniform(2.1, 3.4)    # req/s
-    
+
     # Public API has better latency (cached responses)
     # Admin API has higher latency (complex queries)
-    
+
     # Generate individual metrics first
     public_metrics = {
         "req_total": round(public_req_rate, 2),
@@ -33,7 +34,7 @@ def generate_baseline_metrics():
         "cpu_usage_cores": round(random.uniform(0.35, 0.45), 3),
         "active_connections": random.randint(150, 200)
     }
-    
+
     admin_metrics = {
         "req_total": round(admin_req_rate, 2),
         "latency_p50_ms": round(random.uniform(80, 100), 1),
@@ -45,7 +46,7 @@ def generate_baseline_metrics():
         "cpu_usage_cores": round(random.uniform(0.15, 0.25), 3),
         "active_connections": random.randint(10, 25)
     }
-    
+
     metrics = {
         "collection_time": datetime.now(timezone.utc).isoformat(),
         "duration": "48h",
@@ -115,18 +116,18 @@ def generate_baseline_metrics():
             }
         }
     }
-    
+
     # Memory calculation is already correct in aggregated section
-    
+
     return metrics
 
 if __name__ == "__main__":
     # Generate and save metrics
     metrics = generate_baseline_metrics()
-    
+
     with open("app_metrics_premerge.json", "w") as f:
         json.dump(metrics, f, indent=2)
-    
+
     print("Generated app_metrics_premerge.json")
     print("\n=== SUMMARY ===")
     print(f"Public API: {metrics['apps']['public']['metrics']['req_total']} req/s, "

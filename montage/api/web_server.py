@@ -2,10 +2,12 @@
 Production FastAPI server for Montage video processing
 """
 
+import asyncio
 import json
 import logging
 import os
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -23,29 +25,24 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from ..core.highlight_merger import rover_merger
-from ..core.resource_watchdog import resource_watchdog
-from ..core.upload_validator import UploadValidationError, upload_validator
-from ..core.security import (
-    sanitize_path,
-    validate_filename,
-    validate_job_id,
-    sanitize_user_input,
-    PathTraversalError,
-    InputValidationError,
-)
 from ..core.exceptions import (
     ErrorHandler,
     JobNotFoundError,
-    RateLimitError,
-    AuthenticationError,
-    VideoTooLargeError,
-    VideoTooLongError,
-    InvalidVideoFormatError,
 )
-from ..utils.ffmpeg_process_manager import ffmpeg_process_manager
+from ..core.highlight_merger import rover_merger
+from ..core.security import (
+    PathTraversalError,
+    sanitize_path,
+    validate_filename,
+    validate_job_id,
+)
+from ..core.upload_validator import UploadValidationError, upload_validator
+from ..settings import settings
+from ..utils.ffmpeg_process_manager import get_process_manager, zombie_reaper_loop
+from ..utils.memory_manager import get_available_mb
+
 # Legacy secret_loader import removed - Phase 3-5
-from .auth import require_api_key, validate_api_key
+from .auth import require_api_key, validate_api_key, verify_key
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -67,7 +64,7 @@ def rate_limit_key_func(request: Request):
             # Use last 8 characters of API key for identification (don't log full key)
             api_key_suffix = api_key[-8:] if len(api_key) >= 8 else api_key
             return f"{client_ip}:{api_key_suffix}"
-    except:
+    except Exception:
         pass  # Fallback to IP-only rate limiting
 
     return client_ip
@@ -75,17 +72,39 @@ def rate_limit_key_func(request: Request):
 # P0-05: Initialize rate limiter with custom key function
 limiter = Limiter(key_func=rate_limit_key_func)
 
-from .auth import verify_key
+# Task handle for zombie reaper
+_zombie_reaper_task = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifecycle"""
+    global _zombie_reaper_task
+
+    # Startup
+    logger.info("Starting zombie reaper background task...")
+    _zombie_reaper_task = asyncio.create_task(zombie_reaper_loop(interval=60.0))
+
+    # Run startup validation
+    await validate_secrets_on_startup_internal()
+
+    yield
+
+    # Shutdown
+    logger.info("Shutting down zombie reaper...")
+    if _zombie_reaper_task:
+        _zombie_reaper_task.cancel()
+        try:
+            await _zombie_reaper_task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(
     title="Montage Video Processing API",
     version="3.5.0",
     description="AI-powered video highlight extraction service",
-    dependencies=[Depends(verify_key)]
+    dependencies=[Depends(verify_key)],
+    lifespan=lifespan
 )
-
-# Import unified settings for CORS configuration
-from ..settings import settings
 
 # P0-05: Add CORS middleware with secure defaults
 if settings.environment == "development":
@@ -119,21 +138,21 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 async def montage_exception_handler(request: Request, exc: Exception):
     """Handle all exceptions with consistent error responses"""
     from fastapi.responses import JSONResponse
-    
+
     # Get error response from centralized handler
     error_response = ErrorHandler.handle_error(
-        exc, 
+        exc,
         context={
             "path": request.url.path,
             "method": request.method,
             "debug": settings.debug
         }
     )
-    
+
     # Determine status code
     status_code = 500  # Default to internal server error
     error_code = error_response["error"]["code"]
-    
+
     # Map error codes to HTTP status codes
     status_mapping = {
         "AUTHENTICATION_ERROR": 401,
@@ -150,10 +169,10 @@ async def montage_exception_handler(request: Request, exc: Exception):
         "INSUFFICIENT_RESOURCES": 503,
         "DATABASE_CONNECTION_ERROR": 503,
     }
-    
+
     if error_code in status_mapping:
         status_code = status_mapping[error_code]
-    
+
     return JSONResponse(
         status_code=status_code,
         content=error_response
@@ -171,8 +190,7 @@ def get_celery():
     return process_video_task
 
 # P0-04: FastAPI startup secret validation
-@app.on_event("startup")
-async def validate_secrets_on_startup():
+async def validate_secrets_on_startup_internal():
     """
     Validate all required secrets are available on FastAPI startup
     This ensures the application cannot start without proper configuration
@@ -181,13 +199,13 @@ async def validate_secrets_on_startup():
 
     # Check required secrets from environment
     required_keys = [
-        "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DEEPGRAM_API_KEY", 
+        "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DEEPGRAM_API_KEY",
         "GEMINI_API_KEY", "JWT_SECRET_KEY", "DATABASE_URL"
     ]
-    
+
     validation_results = {"all_valid": True}
     sources_status = {}
-    
+
     for key in required_keys:
         value = os.getenv(key)
         if not value:
@@ -235,20 +253,20 @@ def safe_path(filename: str, base_dir: Path) -> Path:
     try:
         # Sanitize filename first
         clean_name = validate_filename(filename)
-        
+
         # Build full path
         target = base_dir / clean_name
-        
+
         # Validate with security module
         safe_target = sanitize_path(target)
-        
+
         # Additional check to ensure it's within base_dir
         safe_target.relative_to(base_dir.resolve())
-        
+
         return safe_target
     except (PathTraversalError, ValueError) as e:
         from ..core.exceptions import ValidationError
-        raise ValidationError(f"Invalid path: {e}", "INVALID_PATH")
+        raise ValidationError(f"Invalid path: {e}", "INVALID_PATH") from e
 
 
 @app.get("/health")
@@ -265,7 +283,7 @@ async def health_check(request: Request, db = Depends(get_db)):
             "version": "3.5.0",
         }
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}") from e
 
 
 @app.post("/process")
@@ -333,7 +351,7 @@ async def process_video(
             raise HTTPException(
                 status_code=400,
                 detail=f"Upload validation failed: {e.message}"
-            )
+            ) from e
 
         # Rename to final path with validated filename
         final_upload_path = safe_path(f"{job_id}_{validated_filename}", UPLOAD_DIR)
@@ -351,7 +369,7 @@ async def process_video(
         if temp_upload_path and temp_upload_path.exists():
             temp_upload_path.unlink(missing_ok=True)
         logger.error(f"Unexpected error during upload: {e}")
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}") from e
 
     # Create job in database with validation metadata
     try:
@@ -377,7 +395,7 @@ async def process_video(
         if final_upload_path.exists():
             final_upload_path.unlink(missing_ok=True)
         logger.error(f"Database error during job creation: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to create job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create job: {str(e)}") from e
 
     # Queue processing task
     process_video_task.delay(job_id, str(final_upload_path), mode, vertical)
@@ -406,7 +424,7 @@ async def get_job_status(
     try:
         # Validate job ID format
         job_id = validate_job_id(job_id)
-        
+
         job = db.find_one("jobs", {"job_id": job_id})
         if not job:
             raise JobNotFoundError(job_id)
@@ -443,7 +461,7 @@ async def get_job_status(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get status: {str(e)}") from e
 
 
 @app.get("/download/{job_id}")
@@ -459,7 +477,7 @@ async def download_result(
     try:
         # Validate job ID format
         job_id = validate_job_id(job_id)
-        
+
         job = db.find_one("jobs", {"job_id": job_id})
         if not job:
             raise JobNotFoundError(job_id)
@@ -482,7 +500,7 @@ async def download_result(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to download: {str(e)}") from e
 
 
 @app.get("/metrics")
@@ -500,14 +518,14 @@ async def get_metrics(
             # Get job statistics
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) as total_jobs,
                     COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
                     COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
                     COUNT(CASE WHEN status = 'processing' THEN 1 END) as processing,
                     COUNT(CASE WHEN status = 'queued' THEN 1 END) as queued,
-                    AVG(CASE 
-                        WHEN status = 'completed' AND completed_at IS NOT NULL 
+                    AVG(CASE
+                        WHEN status = 'completed' AND completed_at IS NOT NULL
                         THEN EXTRACT(EPOCH FROM (completed_at - created_at))
                     END) as avg_processing_time_sec
                 FROM jobs
@@ -529,7 +547,7 @@ async def get_metrics(
             }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}") from e
 
 
 @app.get("/upload-stats")
@@ -559,7 +577,7 @@ async def get_upload_stats(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get upload stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get upload stats: {str(e)}") from e
 
 
 @app.get("/worker-stats")
@@ -568,23 +586,32 @@ async def get_worker_stats(
     request: Request,
     api_key: str = Depends(require_api_key)  # P0-05: Require API key
 ):
-    """Get current Celery worker resource usage and statistics"""
+    """Get current worker resource usage statistics"""
     try:
-        resource_stats = resource_watchdog.get_resource_stats()
+        # Return basic worker stats without resource_watchdog
+        import psutil
+
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        memory = psutil.virtual_memory()
 
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "worker_status": {
-                "resource_monitoring_active": resource_watchdog.monitoring_active,
-                "uptime_hours": resource_stats["uptime_hours"]
+                "active": True,
+                "pid": os.getpid()
             },
-            "current_usage": resource_stats["current"],
-            "limits": resource_stats["limits"],
-            "statistics": resource_stats["statistics"],
-            "recent_alerts": resource_stats["recent_alerts"]
+            "current_usage": {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_mb": memory.used / 1024 / 1024
+            },
+            "limits": {
+                "max_memory_mb": memory.total / 1024 / 1024,
+                "cpu_cores": psutil.cpu_count()
+            }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get worker stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get worker stats: {str(e)}") from e
 
 
 @app.get("/process-stats")
@@ -595,14 +622,14 @@ async def get_process_stats(
 ):
     """Get current FFmpeg process statistics and resource usage"""
     try:
-        process_stats = ffmpeg_process_manager.get_process_stats()
+        process_stats = get_process_manager().get_process_stats()
 
         return {
             "timestamp": datetime.utcnow().isoformat(),
             "ffmpeg_processes": process_stats
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get process stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get process stats: {str(e)}") from e
 
 
 @app.get("/algorithm-stats")
@@ -627,7 +654,48 @@ async def get_algorithm_stats(
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get algorithm stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get algorithm stats: {str(e)}") from e
+
+
+@app.get("/metrics/proc_mem")
+@limiter.limit("60/minute")   # Phase 6: Process memory metrics endpoint
+async def get_process_memory_metrics(
+    request: Request,
+    api_key: str = Depends(require_api_key),  # P0-05: Require API key
+    db = Depends(get_db)
+):
+    """Get process memory and pool statistics"""
+    try:
+        # Get database pool stats
+        pool_stats = {}
+        if hasattr(db, 'engine') and hasattr(db.engine, 'pool'):
+            pool = db.engine.pool
+            pool_stats = {
+                "size": pool.size(),
+                "checked_out": pool.checked_out(),
+                "overflow": pool.overflow(),
+                "total": pool.size() + pool.overflow()
+            }
+
+        # Get available memory
+        available_mb = get_available_mb()
+
+        # Get process stats from ffmpeg manager
+        process_stats = get_process_manager().get_process_stats()
+
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "pool_stats": pool_stats,
+            "available_mb": round(available_mb, 2),
+            "process_stats": process_stats,
+            "memory_status": {
+                "healthy": available_mb > 1000,  # More than 1GB available
+                "warning_threshold_mb": 500,
+                "critical_threshold_mb": 200
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get process memory metrics: {str(e)}") from e
 
 
 @app.delete("/cleanup")
@@ -660,6 +728,8 @@ async def cleanup_old_files(
 
 
 if __name__ == "__main__":
+    import asyncio
+
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

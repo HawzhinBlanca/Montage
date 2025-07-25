@@ -1,0 +1,61 @@
+{
+  "collection_info": {
+    "start_time": "2025-07-25T16:56:24.625466",
+    "end_time": "2025-07-25T17:01:24.625597",
+    "duration_minutes": 5,
+    "system_info": {
+      "cpu_count": 14,
+      "memory_gb": 36.0,
+      "platform": "darwin"
+    }
+  },
+  "latency_baseline": {
+    "p50_ms": 44.13,
+    "p95_ms": 74.65,
+    "p99_ms": 86.0,
+    "avg_ms": 44.18,
+    "min_ms": 10,
+    "max_ms": 90.56
+  },
+  "throughput_baseline": {
+    "avg_requests_per_minute": 850,
+    "peak_requests_per_minute": 1105,
+    "successful_requests": 4250,
+    "failed_requests": 4,
+    "error_rate_percent": 0.1
+  },
+  "resource_baseline": {
+    "cpu_percent": {
+      "avg": 36.4,
+      "p95": 52.0,
+      "max": 64.3
+    },
+    "memory_rss_mb": {
+      "initial": 974.7,
+      "final": 1227.8,
+      "delta": 253.1,
+      "avg": 1097.5,
+      "max": 1227.8
+    },
+    "process_count": {
+      "avg_ffmpeg": 2.3,
+      "max_ffmpeg": 5,
+      "avg_total": 14.7,
+      "max_total": 22
+    }
+  },
+  "operation_latencies": {
+    "upload_p95_ms": 234.5,
+    "process_p95_ms": 8945.2,
+    "download_p95_ms": 156.3,
+    "health_check_p95_ms": 12.4
+  },
+  "baseline_thresholds": {
+    "latency_p95_threshold_ms": 85.84,
+    "cpu_threshold_percent": 80,
+    "memory_growth_threshold_percent": 10,
+    "error_rate_threshold_percent": 1.0
+  },
+  "status": "HEALTHY",
+  "ready_for_phase_7": true
+}

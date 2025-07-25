@@ -1,0 +1,10 @@
+# Files Safe to Delete
+# All meet criteria: zero coverage, unused by vulture, no imports, <3 commits, not in ADRs
+
+montage/api/celery_app.py
+montage/core/resource_watchdog.py
+montage/core/visual_tracker.py
+montage/jobs/celery_app.py
+montage/providers/smart_track.py
+montage/utils/ffmpeg_memory_manager.py
+montage/utils/video_effects.py

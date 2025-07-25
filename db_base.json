@@ -1,0 +1,104 @@
+{
+  "collection_time": "2025-07-25T16:05:10.199236+00:00",
+  "duration": "2h",
+  "database_url": "postgresql://montage_user@db.montage.io:5432/montage_prod",
+  "database_info": {
+    "host": "db.montage.io",
+    "database": "montage_prod",
+    "version": "PostgreSQL 15.3 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.3.0, 64-bit"
+  },
+  "connections": {
+    "total": 24,
+    "active": 3,
+    "idle": 21,
+    "max_connections": 100,
+    "utilization_pct": 24.0
+  },
+  "size": {
+    "database_bytes": 1355717900,
+    "database_human": "1292.9 MB",
+    "table_count": 8,
+    "index_count": 23
+  },
+  "performance": {
+    "queries_per_second": 58.31,
+    "cache_hit_ratio": 95.76,
+    "commits": 1821538,
+    "rollbacks": 559,
+    "rollback_ratio": 0.0003
+  },
+  "locks": {
+    "total_locks": 40,
+    "blocked_queries": 0
+  },
+  "largest_tables": [
+    {
+      "schemaname": "public",
+      "tablename": "api_cost_log",
+      "size": "423 MB",
+      "size_bytes": 443547648
+    },
+    {
+      "schemaname": "public",
+      "tablename": "performance_metrics",
+      "size": "312 MB",
+      "size_bytes": 327155712
+    },
+    {
+      "schemaname": "public",
+      "tablename": "transcript_cache",
+      "size": "187 MB",
+      "size_bytes": 196083712
+    },
+    {
+      "schemaname": "public",
+      "tablename": "video_job",
+      "size": "156 MB",
+      "size_bytes": 163577856
+    },
+    {
+      "schemaname": "public",
+      "tablename": "highlight",
+      "size": "89 MB",
+      "size_bytes": 93323264
+    }
+  ],
+  "slow_queries": [
+    {
+      "query": "SELECT * FROM video_job WHERE status = $1 AND created_at > $2 ORDER BY created_at DESC",
+      "calls": 15234,
+      "total_ms": 45702.3,
+      "mean_ms": 3.0,
+      "max_ms": 125.4
+    },
+    {
+      "query": "SELECT h.*, vj.metadata FROM highlight h JOIN video_job vj ON h.job_id = vj.id WHERE vj.src_hash = $1",
+      "calls": 8921,
+      "total_ms": 21345.6,
+      "mean_ms": 2.4,
+      "max_ms": 89.2
+    },
+    {
+      "query": "INSERT INTO api_cost_log (job_id, api_name, cost_usd, tokens_used) VALUES ($1, $2, $3, $4)",
+      "calls": 45123,
+      "total_ms": 67684.5,
+      "mean_ms": 1.5,
+      "max_ms": 45.3
+    }
+  ],
+  "recommendations": [
+    "Regular VACUUM and ANALYZE recommended for optimal performance"
+  ],
+  "connection_pool_config": {
+    "min_size": 5,
+    "max_size": 20,
+    "max_overflow": 10,
+    "pool_timeout": 30,
+    "pool_recycle": 3600
+  },
+  "baseline_performance": {
+    "avg_query_time_ms": 1.93,
+    "p95_query_time_ms": 10.77,
+    "p99_query_time_ms": 32.2
+  }
+}
