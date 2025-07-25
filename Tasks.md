@@ -1,60 +1,114 @@
-✅ Phase 3-1 Accepted — Lazy proxy is live, tests and startup log verified.
+✅ Phase 3 officially closed — proof bundle accepted (all SLOs met, legacy loader eradicated).
 
 ⸻
 
-Proceed to Phase 3-2 → 3-4: Canary Roll-out
+Phase 4 — API-Merge ADR & Router Decision
 
-Below is the exact sequence to finish Phase 3; follow it step-by-step and attach the required artifacts.
+<Context>
+Two FastAPI apps exist: **public** (`montage/api/web_server.py`) and **admin** (`montage/api/admin_server.py`).  
+Goal: decide, with data, whether to merge into a single ASGI process under `/v1/public/*` + `/v1/admin/*`.
+</Context>
 
-Stage	Traffic	Duration	Commands	Proof
-A	5 %	2 h	1. Set USE_SETTINGS_V2=true on one staging pod.2. Deploy.3. After 2 h:  ./scripts/collect_canary_metrics.sh 2h settings_stageA.json  python scripts/evaluate_canary.py settings_stageA.json > evaluate_stageA.out	settings_stageA.json + evaluate_stageA.out must show PASS
-B	25 %	2 h	Repeat collection (stage B files).	settings_stageB.json, evaluate_stageB.out (PASS)
-C	100 %	2 h soak	All pods with flag enabled; collect stage C metrics.	settings_stageC.json, evaluate_stageC.out (PASS)
 
-SLO Matrix (evaluate_canary.py enforces)
-	•	p99 latency ≤ +20 % baseline
-	•	5xx error-rate < 1 %
-	•	ImportError_total = 0
-	•	CPU ≤ 80 %
-	•	MEM ≤ 85 %
+4-0  Baseline Metrics (48 h)
+	1.	Enable Prom rules
 
-Partial-fail → extend 2 h and rerun; hard-fail → set flag false and roll back.
+- record: app:req_total
+  expr: sum(rate(http_requests_total{job=~"montage-(public|admin)"}[1m])) by (job)
+- record: app:latency_p95_ms
+  expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~"montage-(public|admin)"}[1m])) by (le,job))*1000
+- record: app:error_rate
+  expr: sum(rate(http_requests_total{status=~"5..",job=~"montage-(public|admin)"}[1m])) / sum(rate(http_requests_total{job=~"montage-(public|admin)"}[1m]))
+
+
+	2.	Collect after 48 h:
+
+scripts/collect_app_metrics.sh 48h app_metrics_premerge.json
+
+
 
 ⸻
 
-Phase 3-5: Remove Legacy Loader
+4-1  Draft ADR (docs/adr/0001-api-merge.md)
 
-After stage C PASS:
+Template sections:
 
-grep -Rl "LEGACY_CONFIG_SHIM" montage/ | xargs sed -i '/LEGACY_CONFIG_SHIM/d'
-git rm utils/secret_loader.py
-grep -R "secret_loader" montage/ | wc -l   # should print 0
+Section	Content required
+Context	two apps; deployment footprint; current perf numbers from app_metrics_premerge.json
+Decision Drivers	latency, error-rate, scaling independence, code duplication
+Options	A) keep separate; B) merge under single app with routers & prefix
+Decision	(fill after comparison)
+Consequences	rollback strategy, scaling implications
+
+
+⸻
+
+4-2  If Decision = Merge
+
+4-2-a  Code Changes
+
+# montage/api/web_server.py  (rename to app.py)
+-app = FastAPI()
++app = FastAPI()
++from montage.api.public_router import router as public_router
++from montage.api.admin_router  import router as admin_router
++app.include_router(public_router, prefix="/v1/public")
++app.include_router(admin_router,  prefix="/v1/admin")
++@app.get("/health")  # retained endpoint
++async def health(): ...
+
+Remove second ASGI entrypoint.
+
+4-2-b  Deployment
+
+Stage	Traffic	Duration	SLOs
+Merge-Canary A	10 %	1 h	p95 latency ≤ +10 %, error-rate < 1 %
+Merge-Canary B	100 %	1 h soak	same
+
+Scripts: collect_app_metrics.sh 1h merge_stageA.json, etc.
+
+Rollback: re-deploy dual-app image + restore ingress weights.
+
+⸻
+
+4-3  CI / Tests
+	1.	Update test paths
+
+sed -i 's@/public/@/v1/public/@g' tests/test_api_endpoints.py
+sed -i 's@/admin/@/v1/admin/@g'  tests/test_api_endpoints.py
 pytest -q
-git commit -am "Phase-3-5: remove legacy config loader"
 
-Add CI guard job:
+	2.	Add CI guard
+Fail if a second ASGI app remains:
 
-- name: Enforce single config source
-  run: |
-    if grep -R "secret_loader" montage/ | grep -v tests; then
-      echo "Legacy config detected"; exit 1; fi
+if grep -R "uvicorn.*admin_server" montage/; then exit 1; fi
+
 
 
 ⸻
 
-Final Phase 3 Proof Bundle
+4-4  Proof-Gate to close Phase 4
 
-settings_stageA.json
-evaluate_stageA.out
-settings_stageB.json
-evaluate_stageB.out
-settings_stageC.json
-evaluate_stageC.out
-startup_log_v2.txt          # shows Config source=settings_v2
-stub_scan.out               # 0 secret_loader refs
-pytest_summary.txt          # all tests passed
-coverage_report.txt         # ≥ Phase-1 critical file thresholds
+docs/adr/0001-api-merge.md
+app_metrics_premerge.json
+(if merged)
+  merge_stageA.json
+  merge_stageB.json
+  evaluate_merge.out   # PASS (same SLO matrix)
+grep -R "admin_server" montage/ | wc -l   # 0
+pytest_summary.txt
+coverage_report.txt    # unchanged
 
-Upload this bundle; once verified, Phase 3 closes and we begin Phase 4 – API-merge ADR.
 
-Next action: run Stage A canary, collect settings_stageA.json & evaluate_stageA.out, and share them here.
+⸻
+
+4-5  If Decision = Keep Separate
+
+Commit ADR marking “keep separate”; no code change. Phase 4 then closes automatically.
+
+⸻
+
+Next Immediate Action
+	1.	Run scripts/collect_app_metrics.sh 48h app_metrics_premerge.json to capture baseline.
+	2.	Draft docs/adr/0001-api-merge.md using the template.
+	3.	Post both files here for review; we’ll confirm decision path and proceed to implementation or close Phase 4.

@@ -1,27 +1,2 @@
-# Pytest Summary - Phase 3 Config Unification
-Generated: Fri Jul 25 17:42:41 +03 2025
-
-## Test Status: Config system unified
-
-### Phase 3 Requirements:
-✅ All legacy secret_loader imports removed
-✅ V2 settings working with environment variables
-✅ CI guard job added to prevent regression
-✅ All canary stages (A, B, C) passed successfully
-
-### Secret Loader Removal:
-- Total secret_loader references (excluding tests): 6
-- All references are comments indicating removal
-
-### Files Updated:
-- montage/core/upload_validator.py
-- montage/core/cache.py
-- montage/core/checkpoint.py
-- montage/core/highlight_selector.py
-- montage/core/resource_watchdog.py
-- montage/utils/video_validator.py
-- montage/utils/ffmpeg_process_manager.py
-- montage/cli/run_pipeline.py
-- montage/settings.py
-- montage/api/auth.py
-- montage/api/web_server.py
+.........                                                                [100%]
+Exit code: 0

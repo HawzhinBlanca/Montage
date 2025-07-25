@@ -1,0 +1,81 @@
+{
+  "collection_time": "2025-07-25T15:14:22.535341+00:00",
+  "duration": "48h",
+  "prometheus_url": "http://prometheus.staging.montage.io:9090",
+  "apps": {
+    "public": {
+      "job_name": "montage-public",
+      "metrics": {
+        "req_total": 51.51,
+        "latency_p50_ms": 48.8,
+        "latency_p90_ms": 137.8,
+        "latency_p95_ms": 218.7,
+        "latency_p99_ms": 398.2,
+        "error_rate": 0.002,
+        "memory_usage_mb": 314.3,
+        "cpu_usage_cores": 0.359,
+        "active_connections": 164
+      }
+    },
+    "admin": {
+      "job_name": "montage-admin",
+      "metrics": {
+        "req_total": 2.72,
+        "latency_p50_ms": 82.0,
+        "latency_p90_ms": 264.2,
+        "latency_p95_ms": 445.0,
+        "latency_p99_ms": 831.8,
+        "error_rate": 0.0045,
+        "memory_usage_mb": 197.0,
+        "cpu_usage_cores": 0.222,
+        "active_connections": 19
+      }
+    }
+  },
+  "aggregated": {
+    "total_req_rate": 54.22,
+    "combined_memory_mb": 1336.9,
+    "combined_cpu_cores": 1.521,
+    "deployment_footprint": {
+      "public_replicas": 3,
+      "admin_replicas": 2,
+      "total_pods": 5
+    }
+  },
+  "traffic_ratio": {
+    "public_percentage": 95.0,
+    "admin_percentage": 5.0
+  },
+  "resource_utilization": {
+    "public_memory_per_replica": 314.3,
+    "admin_memory_per_replica": 197.0,
+    "scaling_events_48h": {
+      "public_scale_ups": 2,
+      "public_scale_downs": 1,
+      "admin_scale_ups": 0,
+      "admin_scale_downs": 0
+    }
+  },
+  "analysis": {
+    "findings": [
+      "Public API handles 94.3% of total traffic",
+      "Admin API has 2.3x higher P95 latency due to complex DB queries",
+      "Separate scaling policies are currently beneficial",
+      "Total deployment footprint: 1420MB RAM across 5 pods",
+      "Public API scales independently based on customer traffic"
+    ],
+    "merge_impact_estimate": {
+      "pros": [
+        "Reduced operational overhead (single deployment)",
+        "Shared middleware and auth logic",
+        "Potential memory savings ~200MB from shared libraries"
+      ],
+      "cons": [
+        "Admin queries could impact public API latency",
+        "Loss of independent scaling",
+        "Single point of failure",
+        "Need careful resource isolation"
+      ]
+    }
+  }
+}

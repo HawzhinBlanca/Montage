@@ -1,0 +1,37 @@
+groups:
+  - name: montage_app_metrics
+    interval: 30s
+    rules:
+      # Request rate per app
+      - record: app:req_total
+        expr: sum(rate(http_requests_total{job=~"montage-(public|admin)"}[1m])) by (job)
+      
+      # P95 latency in milliseconds per app
+      - record: app:latency_p95_ms
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~"montage-(public|admin)"}[1m])) by (le,job))*1000
+      
+      # Error rate (5xx) per app
+      - record: app:error_rate
+        expr: sum(rate(http_requests_total{status=~"5..",job=~"montage-(public|admin)"}[1m])) / sum(rate(http_requests_total{job=~"montage-(public|admin)"}[1m]))
+      
+      # Memory usage per app
+      - record: app:memory_usage_mb
+        expr: container_memory_usage_bytes{pod=~"montage-(public|admin)-.*"} / 1024 / 1024
+      
+      # CPU usage per app
+      - record: app:cpu_usage_cores
+        expr: rate(container_cpu_usage_seconds_total{pod=~"montage-(public|admin)-.*"}[1m])
+      
+      # Active connections per app
+      - record: app:active_connections
+        expr: sum(fastapi_active_connections{job=~"montage-(public|admin)"}) by (job)
+      
+      # Request duration P50, P90, P99
+      - record: app:latency_p50_ms
+        expr: histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=~"montage-(public|admin)"}[1m])) by (le,job))*1000
+      
+      - record: app:latency_p90_ms
+        expr: histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=~"montage-(public|admin)"}[1m])) by (le,job))*1000
+      
+      - record: app:latency_p99_ms
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=~"montage-(public|admin)"}[1m])) by (le,job))
