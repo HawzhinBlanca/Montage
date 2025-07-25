@@ -23,6 +23,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from ..core.db import Database
 from ..core.highlight_merger import rover_merger
 from ..core.resource_watchdog import resource_watchdog
 from ..core.upload_validator import UploadValidationError, upload_validator
@@ -46,6 +47,7 @@ from ..core.exceptions import (
 from ..utils.ffmpeg_process_manager import ffmpeg_process_manager
 # Legacy secret_loader import removed - Phase 3-5
 from .auth import require_api_key, validate_api_key
+from .celery_app import process_video_task
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -159,16 +161,8 @@ async def montage_exception_handler(request: Request, exc: Exception):
         content=error_response
     )
 
-# Lazy-load dependencies to avoid import-time side effects
-def get_db():
-    """Get database connection lazily"""
-    from ..core.db import Database
-    return Database()
-
-def get_celery():
-    """Get Celery task lazily"""
-    from .celery_app import process_video_task
-    return process_video_task
+# Initialize database
+db = Database()
 
 # P0-04: FastAPI startup secret validation
 @app.on_event("startup")
@@ -253,7 +247,7 @@ def safe_path(filename: str, base_dir: Path) -> Path:
 
 @app.get("/health")
 @limiter.limit("100/minute")  # Health checks don't need API key but should be rate limited
-async def health_check(request: Request, db = Depends(get_db)):
+async def health_check(request: Request):
     """Health check endpoint"""
     try:
         # Check database connection
@@ -276,9 +270,7 @@ async def process_video(
     file: UploadFile,
     mode: str = "smart",
     vertical: bool = False,
-    api_key: str = Depends(require_api_key),  # P0-05: Require API key
-    db = Depends(get_db),
-    process_video_task = Depends(get_celery)
+    api_key: str = Depends(require_api_key)  # P0-05: Require API key
 ):
     """
     Upload and process a video file with P1-01 security controls
@@ -399,8 +391,7 @@ async def process_video(
 async def get_job_status(
     request: Request,
     job_id: str,
-    api_key: str = Depends(require_api_key),  # P0-05: Require API key
-    db = Depends(get_db)
+    api_key: str = Depends(require_api_key)  # P0-05: Require API key
 ):
     """Get status of a processing job"""
     try:
@@ -452,8 +443,7 @@ async def get_job_status(
 async def download_result(
     request: Request,
     job_id: str,
-    api_key: str = Depends(require_api_key),  # P0-05: Require API key
-    db = Depends(get_db)
+    api_key: str = Depends(require_api_key)  # P0-05: Require API key
 ):
     """Download processed video"""
     try:
@@ -489,8 +479,7 @@ async def download_result(
 @limiter.limit("30/minute")   # Metrics access should be limited
 async def get_metrics(
     request: Request,
-    api_key: str = Depends(require_api_key),  # P0-05: Require API key
-    db = Depends(get_db)
+    api_key: str = Depends(require_api_key)  # P0-05: Require API key
 ):
     """Get system metrics"""
     try:
