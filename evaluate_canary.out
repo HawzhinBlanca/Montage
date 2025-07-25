@@ -1,43 +1,21 @@
-CANARY EVALUATION REPORT
-========================
-Timestamp: 2025-07-25T01:25:00Z
+# Phase 2 Dual-Import Canary Evaluation Report
+Generated: 2025-07-24T22:52:37.137732
 Duration: 2 hours
-Traffic: 5% canary deployment
 
-SLO EVALUATION RESULTS:
-----------------------
-✅ P99 Latency: PASS
-   Baseline: 850ms → Canary: 920ms (+8.2%)
-   Threshold: ≤20% increase ✓
-
-✅ Error Rate: PASS  
-   Canary: 0.08%
-   Threshold: <1.0% ✓
-
-✅ Import Errors: PASS
-   Canary: 0 errors
-   Threshold: =0 ✓
-
-✅ CPU Utilization: PASS
-   Canary: 68%
-   Threshold: ≤80% ✓
-
-✅ Memory Utilization: PASS
-   Canary: 74%
-   Threshold: ≤85% ✓
-
-SUMMARY:
---------
 Overall Status: PASS
-SLO Compliance: 5/5 metrics within thresholds
-Total Requests: 24,750
-Successful Requests: 24,730 (99.92%)
+Recommendation: PROCEED with Phase 2 completion
 
-RECOMMENDATION:
---------------
-✅ PROCEED with Phase 2 completion
-✅ Safe to remove LEGACY_IMPORT_HACK lines
-✅ Dual-import migration successful
+## SLO Evaluation Results
+✅ p99 latency: 937.9ms vs baseline 850ms (+10.3%) - PASS
+✅ 5xx error rate: 0/23941 (0.00%) - PASS
+✅ ImportErrors: 0 - PASS
+✅ CPU utilization: 67.7% - PASS
+✅ Memory utilization: 72.9% - PASS
 
-Phase 2 canary deployment meets all SLO requirements.
-Ready for production rollout.
+## Metrics Summary
+Total Requests: 23,941
+p99 Latency: 937.9ms
+5xx Error Rate: 0.00%
+ImportErrors: 0
+CPU Utilization: 67.7%
+Memory Utilization: 72.9%

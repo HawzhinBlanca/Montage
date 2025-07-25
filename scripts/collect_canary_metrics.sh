@@ -11,9 +11,18 @@ if [[ -z "$PROM" || -z "$TOKEN" ]]; then
 fi
 
 q() {
+  # Calculate start time (macOS compatible)
+  if command -v gdate >/dev/null 2>&1; then
+    START_TIME=$(gdate -d "-$DUR" +%s)
+  else
+    # Fallback for macOS - convert 2h to seconds and subtract
+    SECONDS_AGO=$(echo "$DUR" | sed 's/h/* 3600/' | sed 's/m/* 60/' | bc -l 2>/dev/null || echo "7200")
+    START_TIME=$(($(date +%s) - ${SECONDS_AGO%.*}))
+  fi
+  
   curl -sG -H "Authorization: Bearer $TOKEN" \
        --data-urlencode "query=$1" \
-       --data-urlencode "start=$(date -d "-$DUR" +%s)" \
+       --data-urlencode "start=$START_TIME" \
        --data-urlencode "end=$(date +%s)" \
        "$PROM/api/v1/query_range"
 }

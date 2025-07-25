@@ -334,8 +334,13 @@ class SmartVideoEditorCheckpoint:
     def __init__(self, checkpoint_manager: CheckpointManager):
         self.checkpoint_manager = checkpoint_manager
 
-    def save_stage_data(self, job_id: str, stage: str, **kwargs) -> None:
+    def save_stage_data(self, job_id: str, stage: str, data=None, **kwargs) -> None:
         """Save stage-specific data"""
+        if data is not None:
+            if isinstance(data, dict):
+                kwargs.update(data)
+            else:
+                kwargs['data'] = data
         self.checkpoint_manager.save_checkpoint(job_id, stage, kwargs)
 
     def load_stage_data(self, job_id: str, stage: str) -> Optional[Dict[str, Any]]:

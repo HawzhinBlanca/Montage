@@ -61,55 +61,55 @@ class ProcessingConfig(BaseModel):
 
 class Settings(BaseSettings):
     """V2 settings with structured configuration using Pydantic"""
-    
+
     # Sub-configurations
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     redis: RedisConfig = Field(default_factory=RedisConfig)
     api_keys: APIKeysConfig = Field(default_factory=APIKeysConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     processing: ProcessingConfig = Field(default_factory=ProcessingConfig)
-    
+
     # Legacy compatibility properties
     @property
     def database_url(self) -> str:
         return self.database.url.get_secret_value()
-    
+
     @property
     def redis_url(self) -> str:
         return self.redis.url.get_secret_value()
-    
+
     @property
     def openai_api_key(self) -> Optional[str]:
         return self.api_keys.openai.get_secret_value() if self.api_keys.openai else None
-    
+
     @property
     def anthropic_api_key(self) -> Optional[str]:
         return self.api_keys.anthropic.get_secret_value() if self.api_keys.anthropic else None
-    
+
     @property
     def deepgram_api_key(self) -> Optional[str]:
         return self.api_keys.deepgram.get_secret_value() if self.api_keys.deepgram else None
-    
+
     @property
     def jwt_secret_key(self) -> str:
         return self.security.jwt_secret_key.get_secret_value()
-    
+
     @property
     def max_cost_usd(self) -> float:
         return self.processing.max_cost_usd
-    
+
     @property
     def use_gpu(self) -> bool:
         return self.processing.use_gpu
-    
+
     @property
     def max_workers(self) -> int:
         return self.processing.max_workers
-    
+
     @property
     def cache_ttl(self) -> int:
         return self.redis.ttl
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -126,22 +126,22 @@ def get_settings() -> Settings:
     """Load settings from environment variables (cached)"""
     # Override from env vars if needed
     overrides = {}
-    
+
     # Handle legacy env var names
     if os.getenv("USE_GPU"):
         overrides.setdefault("processing", {})
         overrides["processing"]["use_gpu"] = os.getenv("USE_GPU", "false").lower() == "true"
-    
+
     if os.getenv("MAX_WORKERS"):
         overrides.setdefault("processing", {})
         overrides["processing"]["max_workers"] = int(os.getenv("MAX_WORKERS", "4"))
-    
+
     if os.getenv("MAX_COST_USD"):
         overrides.setdefault("processing", {})
         overrides["processing"]["max_cost_usd"] = float(os.getenv("MAX_COST_USD", "5.0"))
-    
+
     if os.getenv("CACHE_TTL"):
         overrides.setdefault("redis", {})
         overrides["redis"]["ttl"] = int(os.getenv("CACHE_TTL", "3600"))
-    
+
     return Settings(**overrides)

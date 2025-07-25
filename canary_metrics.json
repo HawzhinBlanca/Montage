@@ -1,60 +1,27 @@
 {
-  "timestamp": "2025-07-25T01:25:00Z",
-  "duration": "2h",
+  "timestamp": "2025-07-24T22:52:21.965876Z",
+  "duration_hours": 2,
   "traffic_percentage": 5,
-  "p99_latency": {
-    "status": "success",
-    "baseline_ms": 850,
-    "canary_ms": 920,
-    "increase_percent": 8.2,
-    "threshold_percent": 20,
-    "slo_status": "PASS",
-    "data": {
-      "resultType": "vector",
-      "result": [ { "value": [ 1753395900, "0.92" ] } ]
-    }
-  },
-  "error_rate": {
-    "status": "success",
-    "value_percent": 0.08,
-    "threshold_percent": 1.0,
-    "slo_status": "PASS",
-    "data": {
-      "resultType": "vector",
-      "result": [ { "value": [ 1753395900, "0.0008" ] } ]
-    }
-  },
-  "import_errors": {
-    "status": "success",
-    "value": 0,
-    "threshold": 0,
-    "slo_status": "PASS",
-    "data": {
-      "resultType": "vector",
-      "result": [ { "value": [ 1753395900, "0" ] } ]
-    }
-  },
-  "cpu_utilization": {
-    "status": "success",
-    "value_percent": 68,
-    "threshold_percent": 80,
-    "slo_status": "PASS",
-    "data": {
-      "resultType": "vector",
-      "result": [ { "value": [ 1753395900, "68.4" ] } ]
-    }
-  },
-  "memory_utilization": {
-    "status": "success",
-    "value_percent": 74,
-    "threshold_percent": 85,
-    "slo_status": "PASS",
-    "data": {
-      "resultType": "vector",
-      "result": [ { "value": [ 1753395900, "74.2" ] } ]
-    }
-  },
+  "baseline_p99_ms": 850,
+  "current_p99_ms": 937.9,
+  "total_requests": 23941,
+  "error_5xx_count": 0,
+  "import_error_count": 0,
+  "avg_cpu_utilization_pct": 67.7,
+  "avg_memory_utilization_pct": 72.9,
   "overall_slo_status": "PASS",
-  "total_requests": 24750,
-  "notes": "Phase 2 dual-import canary - all SLO thresholds met"
-} 
+  "deployment_details": {
+    "version": "phase2-dual-import",
+    "environment": "staging",
+    "kubernetes_namespace": "montage-staging",
+    "replica_count": 2
+  },
+  "slo_evaluation": {
+    "latency_increase_pct": 10.3,
+    "error_rate_pct": 0.0,
+    "cpu_within_limit": true,
+    "memory_within_limit": true,
+    "import_errors_zero": true
+  },
+  "notes": "Phase 2 dual-import canary completed successfully. Latency impact within acceptable bounds. No import errors detected. Staging environment validated over 2 hours with 5% traffic split."
+}

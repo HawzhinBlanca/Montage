@@ -6,14 +6,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Try to import from utils
-try:
-    from .utils.secret_loader import get
-except ImportError:
-    # Fallback for different import contexts
-    import sys
-    sys.path.append(str(Path(__file__).parent))
-    from utils.secret_loader import get
+# Phase 3-5: Removed secret_loader dependency
+# Now using direct environment variable access only
+def get(key: str, default: str = "") -> str:
+    """Simple env var getter to replace secret_loader"""
+    return os.getenv(key, default)
 
 
 class LegacySettings:
@@ -44,4 +41,3 @@ class LegacySettings:
     def load(cls):
         """Factory method to create settings instance"""
         return cls()
-
