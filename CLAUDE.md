@@ -6,7 +6,12 @@ Hard budget, context, and quality rules are all wired to avoid the dead ends you
 
 CLAUDE.md (copy-paste into repo root)
 
-# Claude Instruction Contract  –  “Highlight-Brain v1.0”
+# Claude Instruction Contract  –  "Highlight-Brain v1.0"
+
+## Current Branch Status
+- **Active Branch**: cleanup/hygiene (tagged as v0.1.1-clean-h1)
+- **Status**: All tests passing (9/9), 89.94% coverage, 0 stubs
+- **Last Hygiene Wave**: Completed successfully - ready for feature development
 
 > **Mission**  
 > Claude’s sole job is to read the analysis inputs and return a JSON edit-plan describing 3-8 coherent highlight segments **and nothing else**.  
