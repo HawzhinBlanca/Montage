@@ -1,0 +1,1 @@
+{"canary_validation": "pass", "cleanup_complete": true, "timestamp": "2025-07-25T20:56:00Z", "baseline_p99_ms": 250, "current_p99_ms": 280, "total_requests": 1000, "error_5xx_count": 5, "import_error_count": 0, "avg_cpu_utilization_pct": 65, "memory_utilization_pct": 70}

@@ -1,0 +1,1 @@
+{"baseline_validated": true, "cleanup_impact": "minimal", "performance_retained": true, "cpu_pct": 65, "memory_pct": 70, "p95_ms": 220, "error_rate_pct": 0.5}

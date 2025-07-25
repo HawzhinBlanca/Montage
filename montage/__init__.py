@@ -8,7 +8,7 @@ try:
     settings = get_settings()
     configure_secure_logging(
         level=settings.logging.level,
-        log_file=settings.logging.file_path,
+        log_dir=settings.logging.file_path.parent if settings.logging.file_path else None,
         use_json=settings.logging.use_json_format,
         mask_secrets=settings.logging.mask_secrets
     )

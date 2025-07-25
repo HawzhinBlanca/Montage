@@ -1,1 +1,7 @@
-.................                                                        [100%]
+.F.F...FF                                                                [100%]
+=========================== short test summary info ============================
+FAILED tests/phase2_final/test_phase2_requirements.py::test_canary_evaluation_pass
+FAILED tests/phase2_final/test_phase2_requirements.py::test_canary_metrics_valid
+FAILED tests/unit_isolated/test_phase2_verification.py::test_canary_evaluation_pass
+FAILED tests/unit_isolated/test_phase2_verification.py::test_performance_baseline_valid
+4 failed, 5 passed in 0.67s

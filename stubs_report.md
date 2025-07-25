@@ -33,6 +33,7 @@ scripts/evaluate_perf_guard.py:109: passed = growth_pct <= threshold_pct
 scripts/evaluate_perf_guard.py:138: passed = error_rate < threshold
 scripts/repo_scan.py:97: pass
 scripts/repo_scan.py:129: pass
+scripts/final_cleanup.py:103: pass  # Skip if can't access or remove
 scripts/evaluate_canary.py:52: passed = increase_pct <= threshold
 scripts/evaluate_canary.py:68: passed = error_rate_pct < threshold
 scripts/evaluate_canary.py:78: passed = import_errors <= threshold

@@ -14,14 +14,14 @@ def clean_build_artifacts():
     patterns = [
         "**/__pycache__",
         "**/*.pyc",
-        "**/*.pyo", 
+        "**/*.pyo",
         "**/*.pyd",
         "**/.pytest_cache",
         "**/*.egg-info",
         "**/build",
         "**/dist"
     ]
-    
+
     removed = []
     for pattern in patterns:
         for item in glob.glob(pattern, recursive=True):
@@ -31,14 +31,14 @@ def clean_build_artifacts():
                 else:
                     os.unlink(item)
                 removed.append(item)
-    
+
     return removed
 
 def clean_log_files():
     """Remove log and output files"""
     patterns = [
         "*.log",
-        "*.out", 
+        "*.out",
         "*.tmp",
         "*_test.json",
         "*_metrics.json",
@@ -53,14 +53,14 @@ def clean_log_files():
         "full_pipeline_test.log",
         "pipeline_run.log"
     ]
-    
+
     removed = []
     for pattern in patterns:
         for item in glob.glob(pattern):
             if os.path.exists(item) and os.path.isfile(item):
                 os.unlink(item)
                 removed.append(item)
-    
+
     return removed
 
 def clean_test_artifacts():
@@ -68,7 +68,7 @@ def clean_test_artifacts():
     # Test data files that can be regenerated
     test_files = [
         "test_analysis.json",
-        "full_video_analysis.json", 
+        "full_video_analysis.json",
         "approved_story_structure.json",
         "clean_plan.json",
         "cov.json",
@@ -78,19 +78,19 @@ def clean_test_artifacts():
         "test_plan.json",
         "stub_scan.out"
     ]
-    
+
     removed = []
     for file in test_files:
         if os.path.exists(file):
             os.unlink(file)
             removed.append(file)
-    
+
     return removed
 
 def clean_empty_directories():
     """Remove empty directories"""
     removed = []
-    
+
     # Look for empty directories
     for root, dirs, files in os.walk(".", topdown=False):
         for dir_name in dirs:
@@ -101,7 +101,7 @@ def clean_empty_directories():
                     removed.append(dir_path)
             except (OSError, PermissionError):
                 pass  # Skip if can't access or remove
-    
+
     return removed
 
 def preserve_important_files():
@@ -109,41 +109,41 @@ def preserve_important_files():
     preserve = [
         # Core project files
         "requirements.txt",
-        "pyproject.toml", 
+        "pyproject.toml",
         "setup.py",
         "CLAUDE.md",
         "README.md",
         ".env.example",
         ".gitignore",
-        
+
         # Configuration
         "pytest.ini",
         "docker-compose.yml",
         "Dockerfile",
-        
+
         # Scripts
         "flatten_dirs.sh",
-        
+
         # Keep one baseline for reference
         "perf_baseline.json",
         "canary_metrics.json"
     ]
-    
+
     return preserve
 
 def main():
     """Run final cleanup sweep"""
     print("🧹 Starting final cleanup sweep...")
-    
+
     preserve_files = preserve_important_files()
     total_removed = []
-    
+
     # 1. Clean build artifacts
     print("   Removing build artifacts...")
     removed = clean_build_artifacts()
     total_removed.extend(removed)
     print(f"   📦 Removed {len(removed)} build artifacts")
-    
+
     # 2. Clean log files
     print("   Removing log files...")
     removed = clean_log_files()
@@ -154,22 +154,22 @@ def main():
             os.unlink(f)
     total_removed.extend(removed)
     print(f"   📝 Removed {len(removed)} log files")
-    
+
     # 3. Clean test artifacts
     print("   Removing test artifacts...")
-    removed = clean_test_artifacts() 
+    removed = clean_test_artifacts()
     total_removed.extend(removed)
     print(f"   🧪 Removed {len(removed)} test artifacts")
-    
+
     # 4. Clean empty directories
     print("   Removing empty directories...")
     removed = clean_empty_directories()
     total_removed.extend(removed)
     print(f"   📁 Removed {len(removed)} empty directories")
-    
+
     print(f"\n✅ Final cleanup complete!")
     print(f"   Total items removed: {len(total_removed)}")
-    
+
     if len(total_removed) < 50:  # Show details if not too many
         print(f"\n📋 Items removed:")
         for item in sorted(total_removed)[:20]:  # Show first 20
