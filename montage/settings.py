@@ -227,19 +227,13 @@ class MonitoringSettings(BaseModel):
 class FeatureFlags(BaseModel):
     """Feature flags for gradual rollout"""
     enable_speaker_diarization: bool = Field(default=True)
-    enable_emotion_analysis: bool = Field(default=False)
     enable_smart_crop: bool = Field(default=True)
-    enable_audio_ducking: bool = Field(default=False)
-    enable_hdr_processing: bool = Field(default=False)
     enable_ab_testing: bool = Field(default=True)
     enable_caching: bool = Field(default=True)
     cache_ttl_seconds: int = Field(default=3600, gt=0)
     
     # Local AI preferences
     prefer_local_models: bool = Field(default=True)
-    use_ollama_by_default: bool = Field(default=True)
-    ollama_model: str = Field(default="gemma3:latest")
-    whisper_model_size: str = Field(default="medium")  # Speed/quality balance
 
 
 class Settings(BaseSettings):

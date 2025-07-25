@@ -2,19 +2,13 @@
 Unified configuration entry-point.
 `settings` is instantiated **on first access** to avoid import-time crashes.
 """
-import os
 from functools import lru_cache
-
-USE_V2 = os.getenv("USE_SETTINGS_V2", "false").lower() == "true"
 
 @lru_cache
 def _load_settings():
-    if USE_V2:
-        from .settings_v2 import get_settings
-        return get_settings()
-    else:
-        from .legacy_adapter import LegacySettings
-        return LegacySettings.load()
+    # Always use the main settings module
+    from .settings import get_settings
+    return get_settings()
 
 # public handle
 class _SettingsProxy:
