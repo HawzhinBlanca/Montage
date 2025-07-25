@@ -2,7 +2,7 @@
 
 # Configure secure logging on import
 try:
-    from .utils.secure_logging import configure_secure_logging
+    from .utils.logging_config import configure_secure_logging
     from .settings import get_settings
     
     settings = get_settings()

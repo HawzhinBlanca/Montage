@@ -1025,3 +1025,247 @@ if __name__ == "__main__":
 
     finally:
         shutdown_memory_management()
+
+
+# ===== MEMORY MANAGEMENT SYSTEM (merged from memory_init.py) =====
+
+class MemoryManagementSystem:
+    """Centralized memory management system for Montage video processing"""
+
+    def __init__(self):
+        self.initialized = False
+        self.monitor = None
+        self.pressure_manager = None
+        self.adaptive_config = None
+        self.resource_tracker = None
+
+    def initialize(
+        self, enable_monitoring: bool = True, monitoring_interval: float = 2.0
+    ) -> bool:
+        """Initialize the memory management system"""
+
+        if self.initialized:
+            logger.info("Memory management already initialized")
+            return True
+
+        try:
+            logger.info("Initializing comprehensive memory management system...")
+
+            # Initialize core components
+            self.monitor, self.pressure_manager, self.adaptive_config = (
+                initialize_memory_management()
+            )
+            
+            # Get resource tracker if available
+            try:
+                from .resource_manager import get_resource_tracker
+                self.resource_tracker = get_resource_tracker()
+            except ImportError:
+                logger.debug("Resource tracker not available")
+
+            # Start monitoring if requested
+            if enable_monitoring and self.monitor:
+                self.monitor.start_monitoring()
+                logger.info(
+                    f"Memory monitoring started (interval: {monitoring_interval}s)"
+                )
+
+            # Register cleanup handlers
+            atexit.register(self.shutdown)
+            signal.signal(signal.SIGINT, self._signal_handler)
+            signal.signal(signal.SIGTERM, self._signal_handler)
+
+            # Log system information
+            if self.monitor:
+                stats = self.monitor.get_current_stats()
+                logger.info(
+                    f"System memory: {stats.total_mb:.0f}MB total, "
+                    f"{stats.available_mb:.0f}MB available, "
+                    f"pressure level: {stats.pressure_level.value}"
+                )
+
+            # Log adaptive configuration
+            if self.adaptive_config:
+                config = self.adaptive_config.get_current_config()
+                logger.info(
+                    f"Adaptive config: {config['max_workers']} workers, "
+                    f"{config['chunk_size_mb']}MB chunks, "
+                    f"{config['quality_preset']} preset"
+                )
+
+            self.initialized = True
+            logger.info("Memory management system initialized successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to initialize memory management: {e}")
+            return False
+
+    def shutdown(self):
+        """Shutdown the memory management system"""
+        if not self.initialized:
+            return
+
+        logger.info("Shutting down memory management system...")
+
+        try:
+            # Stop monitoring
+            if self.monitor:
+                self.monitor.stop_monitoring()
+
+            # Clean up all video resources
+            if self.resource_tracker:
+                from .resource_manager import cleanup_video_resources
+                cleanup_video_resources()
+
+            # Shutdown core system
+            shutdown_memory_management()
+
+            self.initialized = False
+            logger.info("Memory management system shutdown completed")
+
+        except Exception as e:
+            logger.error(f"Error during memory management shutdown: {e}")
+
+    def _signal_handler(self, signum, frame):
+        """Handle shutdown signals"""
+        logger.info(f"Received signal {signum}, shutting down memory management...")
+        self.shutdown()
+
+    def get_status(self) -> dict:
+        """Get current status of memory management system"""
+        if not self.initialized:
+            return {
+                "initialized": False,
+                "memory_management_available": False,
+            }
+
+        status = {"initialized": True, "memory_management_available": True}
+
+        try:
+            # Memory stats
+            if self.monitor:
+                stats = self.monitor.get_current_stats()
+                status["memory"] = {
+                    "total_mb": stats.total_mb,
+                    "available_mb": stats.available_mb,
+                    "used_percent": stats.percent_used,
+                    "pressure_level": stats.pressure_level.value,
+                    "process_memory_mb": stats.process_memory_mb,
+                }
+
+            # Resource usage
+            if self.resource_tracker:
+                usage = self.resource_tracker.get_resource_usage()
+                status["resources"] = usage
+
+            # Adaptive configuration
+            if self.adaptive_config:
+                config = self.adaptive_config.get_current_config()
+                status["config"] = config
+
+        except Exception as e:
+            logger.error(f"Error getting memory management status: {e}")
+            status["error"] = str(e)
+
+        return status
+
+    def force_cleanup(self):
+        """Force cleanup of all resources"""
+        logger.info("Forcing cleanup of all resources...")
+
+        try:
+            if self.resource_tracker:
+                from .resource_manager import cleanup_video_resources
+                cleanup_video_resources()
+
+            # Force garbage collection
+            gc.collect()
+
+            logger.info("Force cleanup completed")
+
+        except Exception as e:
+            logger.error(f"Error during force cleanup: {e}")
+
+    def get_memory_safe_config(self, video_path: Optional[str] = None) -> dict:
+        """Get memory-safe configuration for video processing"""
+        if not self.initialized or not self.adaptive_config:
+            # Return safe defaults
+            return {
+                "max_workers": 2,
+                "chunk_size_mb": 256,
+                "quality_preset": "medium",
+                "enable_hardware_accel": False,
+                "max_concurrent_ffmpeg": 1,
+            }
+
+        return self.adaptive_config.get_current_config()
+
+
+# Global instance
+_memory_system: Optional[MemoryManagementSystem] = None
+
+
+def get_memory_system() -> MemoryManagementSystem:
+    """Get or create global memory management system"""
+    global _memory_system
+    if _memory_system is None:
+        _memory_system = MemoryManagementSystem()
+    return _memory_system
+
+
+def init_memory_management(
+    enable_monitoring: bool = True, monitoring_interval: float = 2.0
+) -> bool:
+    """Initialize global memory management system"""
+    return get_memory_system().initialize(enable_monitoring, monitoring_interval)
+
+
+def shutdown_memory_management_system():
+    """Shutdown global memory management system"""
+    get_memory_system().shutdown()
+
+
+def get_memory_status() -> dict:
+    """Get current memory management status"""
+    return get_memory_system().get_status()
+
+
+def force_memory_cleanup():
+    """Force cleanup of all memory resources"""
+    get_memory_system().force_cleanup()
+
+
+def get_safe_processing_config(video_path: Optional[str] = None) -> dict:
+    """Get memory-safe configuration for processing"""
+    return get_memory_system().get_memory_safe_config(video_path)
+
+
+def is_memory_management_available() -> bool:
+    """Check if memory management components are available"""
+    return get_memory_system().initialized
+
+
+# Convenience function for quick setup
+def setup_memory_management() -> bool:
+    """Quick setup function for memory management"""
+    success = init_memory_management()
+
+    if success:
+        logger.info("Memory management setup completed successfully")
+
+        # Log current status
+        status = get_memory_status()
+        if "memory" in status:
+            memory_info = status["memory"]
+            logger.info(
+                f"Available memory: {memory_info['available_mb']:.0f}MB "
+                f"({100 - memory_info['used_percent']:.1f}% free)"
+            )
+
+    else:
+        logger.warning(
+            "Memory management setup failed - continuing without memory optimization"
+        )
+
+    return success

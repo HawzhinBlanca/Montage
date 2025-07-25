@@ -8,25 +8,19 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import sys
 import threading
 import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Pattern
 
-# Import secure logging components
-try:
-    from .secure_logging import (
-        SensitiveDataFilter,
-        SecureJSONFormatter,
-        configure_secure_logging,
-    )
-    SECURE_LOGGING_AVAILABLE = True
-except ImportError:
-    SECURE_LOGGING_AVAILABLE = False
+# Secure logging is now integrated directly into this module
+SECURE_LOGGING_AVAILABLE = True
 
 # Thread-local storage for correlation IDs
 _context_storage = threading.local()
@@ -526,3 +520,165 @@ def _auto_configure():
 
 # Initialize with defaults on import
 _auto_configure()
+
+
+# ===== SECURE LOGGING COMPONENTS (merged from secure_logging.py) =====
+
+class SensitiveDataFilter(logging.Filter):
+    """
+    Logging filter that masks sensitive data in log messages
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.enabled = True  # Enable by default for security
+        self.patterns = []
+        
+        # Additional patterns for common secrets
+        self.secret_patterns = [
+            # API Keys - simple patterns first
+            (re.compile(r'\bsk-[a-zA-Z0-9]{20,}\b'), None),  # OpenAI style
+            (re.compile(r'\bsk-ant-[a-zA-Z0-9]{20,}\b'), None),  # Anthropic style
+            (re.compile(r'\bAKIA[0-9A-Z]{16}\b'), None),  # AWS Access Key
+            
+            # Key-value patterns
+            (re.compile(r'(api[_\-]?key|apikey|api_secret)\s*[:=]\s*["\']?([^"\'\s,}]+)', re.I), 2),
+            (re.compile(r'(password|passwd|pwd)\s*[:=]\s*["\']?([^"\'\s,}]+)', re.I), 2),
+            (re.compile(r'(token|access_token|refresh_token|auth_token)\s*[:=]\s*["\']?([^"\'\s,}]+)', re.I), 2),
+            (re.compile(r'(secret|client_secret)\s*[:=]\s*["\']?([^"\'\s,}]+)', re.I), 2),
+            
+            # Bearer tokens
+            (re.compile(r'Bearer\s+([a-zA-Z0-9\-_.=/+]+)', re.I), 1),
+            
+            # Database URLs - mask the credentials part
+            (re.compile(r'(postgresql|postgres|mysql|mongodb|redis)://([^@]+)@', re.I), 2),
+            
+            # Credit Cards
+            (re.compile(r'\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b'), None),
+            
+            # SSN
+            (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), None),
+            
+            # Email addresses (optional - can be noisy)
+            (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), None),
+        ]
+    
+    def _compile_patterns(self, pattern_list: List[str]) -> List[Pattern]:
+        """Compile regex patterns from string list"""
+        compiled = []
+        for pattern in pattern_list:
+            try:
+                compiled.append(re.compile(pattern))
+            except re.error:
+                pass  # Skip invalid patterns
+        return compiled
+    
+    @lru_cache(maxsize=1024)
+    def mask_sensitive_data(self, text: str) -> str:
+        """Mask sensitive data in text"""
+        if not self.enabled or not isinstance(text, str):
+            return text
+        
+        masked_text = text
+        
+        # Apply secret patterns
+        for pattern, group_num in self.secret_patterns:
+            if group_num is not None:
+                # Replace specific group
+                def replace_group(match):
+                    groups = list(match.groups())
+                    if group_num <= len(groups):
+                        groups[group_num - 1] = '***MASKED***'
+                    return match.group(0).replace(match.group(group_num), '***MASKED***')
+                masked_text = pattern.sub(replace_group, masked_text)
+            else:
+                # Replace entire match
+                masked_text = pattern.sub('***MASKED***', masked_text)
+        
+        # Apply custom patterns
+        for pattern in self.patterns:
+            masked_text = pattern.sub('***MASKED***', masked_text)
+        
+        return masked_text
+    
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Filter log record to mask sensitive data"""
+        if not self.enabled:
+            return True
+        
+        # Mask the main message
+        record.msg = self.mask_sensitive_data(str(record.msg))
+        
+        # Mask arguments
+        if hasattr(record, 'args') and record.args:
+            if isinstance(record.args, dict):
+                record.args = {
+                    k: self.mask_sensitive_data(str(v)) if isinstance(v, str) else v
+                    for k, v in record.args.items()
+                }
+            elif isinstance(record.args, (tuple, list)):
+                record.args = tuple(
+                    self.mask_sensitive_data(str(arg)) if isinstance(arg, str) else arg
+                    for arg in record.args
+                )
+        
+        # Mask extra fields
+        for key in dir(record):
+            if not key.startswith('_') and key not in ('msg', 'args', 'getMessage'):
+                value = getattr(record, key, None)
+                if isinstance(value, str):
+                    setattr(record, key, self.mask_sensitive_data(value))
+        
+        return True
+
+
+class SecureJSONFormatter(JSONFormatter):
+    """
+    JSON formatter that ensures sensitive data is masked
+    """
+    
+    def __init__(self, include_extra_fields: bool = True):
+        super().__init__()
+        self.include_extra_fields = include_extra_fields
+        self.filter = SensitiveDataFilter()
+    
+    def format(self, record: logging.LogRecord) -> str:
+        """Format log record as JSON with sensitive data masked"""
+        # Apply sensitive data filter first
+        self.filter.filter(record)
+        # Then use parent's JSON formatting
+        return super().format(record)
+
+
+def configure_secure_logging(
+    level: Optional[str] = None,
+    log_dir: Optional[Path] = None,
+    use_json: Optional[bool] = None,
+    mask_secrets: bool = True
+) -> None:
+    """
+    Configure secure logging for the application
+    
+    Args:
+        level: Logging level
+        log_dir: Directory for log files
+        use_json: Whether to use JSON format
+        mask_secrets: Whether to mask secrets (default True)
+    """
+    # Add sensitive data filter if enabled
+    if mask_secrets:
+        sensitive_filter = SensitiveDataFilter()
+        
+        # Add to all existing handlers
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            handler.addFilter(sensitive_filter)
+    
+    # Use existing configure_logging with secure defaults
+    configure_logging(
+        log_level=level,
+        log_dir=log_dir,
+        enable_json=use_json,
+        enable_file_logging=log_dir is not None,
+        max_file_size=100 * 1024 * 1024  # 100MB
+    )

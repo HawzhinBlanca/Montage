@@ -38,7 +38,7 @@ from ..core.security import (
 )
 from ..core.upload_validator import UploadValidationError, upload_validator
 from ..settings import settings
-from ..utils.ffmpeg_process_manager import get_process_manager, zombie_reaper_loop
+from ..utils.ffmpeg_utils import get_process_manager, zombie_reaper_loop
 from ..utils.memory_manager import get_available_mb
 
 # Legacy secret_loader import removed - Phase 3-5
