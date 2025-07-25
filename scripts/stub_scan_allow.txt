@@ -1,0 +1,5 @@
+# Allowed pass statements - exception handlers that raise immediately
+montage/utils/ffmpeg_utils.py:24: pass  # ProcessExecutionError handler
+montage/utils/ffmpeg_utils.py:28: pass  # ProcessLimitError handler  
+montage/utils/ffmpeg_utils.py:32: pass  # ProcessTimeoutError handler
+montage/api/web_server.py:99: pass      # Fallback IP-only rate limiting
