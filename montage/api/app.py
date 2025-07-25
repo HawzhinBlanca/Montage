@@ -38,7 +38,7 @@ async def process_video(request: VideoProcessRequest):
     """Submit video for processing"""
     try:
         # Import Celery task
-        from montage.jobs.tasks import process_video
+        from montage.api.celery_tasks import process_video
         
         # Submit task
         task = process_video.delay(
@@ -63,7 +63,7 @@ async def process_video(request: VideoProcessRequest):
 async def get_status(task_id: str):
     """Get task status"""
     try:
-        from montage.jobs.tasks import process_video
+        from montage.api.celery_tasks import process_video
         
         task = process_video.AsyncResult(task_id)
         
