@@ -24,7 +24,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import psutil
 
 from ..utils.logging_config import get_logger
-from ..utils.secret_loader import get
 
 logger = get_logger(__name__)
 
@@ -42,23 +41,23 @@ class ProcessLimits:
     """P1-03: Process resource limits configuration"""
 
     # Time limits (seconds)
-    DEFAULT_TIMEOUT: int = int(get("FFMPEG_DEFAULT_TIMEOUT_SEC", "300"))  # 5 minutes
-    MAX_TIMEOUT: int = int(get("FFMPEG_MAX_TIMEOUT_SEC", "1800"))  # 30 minutes
+    DEFAULT_TIMEOUT: int = int(os.getenv("FFMPEG_DEFAULT_TIMEOUT_SEC", "300"))  # 5 minutes
+    MAX_TIMEOUT: int = int(os.getenv("FFMPEG_MAX_TIMEOUT_SEC", "1800"))  # 30 minutes
 
     # Memory limits (MB)
-    MAX_MEMORY_MB: int = int(get("FFMPEG_MAX_MEMORY_MB", "1024"))  # 1GB per process
-    MEMORY_WARNING_MB: int = int(get("FFMPEG_MEMORY_WARNING_MB", "768"))  # 768MB warning
+    MAX_MEMORY_MB: int = int(os.getenv("FFMPEG_MAX_MEMORY_MB", "1024"))  # 1GB per process
+    MEMORY_WARNING_MB: int = int(os.getenv("FFMPEG_MEMORY_WARNING_MB", "768"))  # 768MB warning
 
     # CPU limits
-    MAX_CPU_PERCENT: float = float(get("FFMPEG_MAX_CPU_PERCENT", "80.0"))
+    MAX_CPU_PERCENT: float = float(os.getenv("FFMPEG_MAX_CPU_PERCENT", "80.0"))
 
     # Process limits
-    MAX_CONCURRENT_PROCESSES: int = int(get("FFMPEG_MAX_CONCURRENT", "4"))
-    MAX_CHILD_PROCESSES: int = int(get("FFMPEG_MAX_CHILDREN", "8"))
+    MAX_CONCURRENT_PROCESSES: int = int(os.getenv("FFMPEG_MAX_CONCURRENT", "4"))
+    MAX_CHILD_PROCESSES: int = int(os.getenv("FFMPEG_MAX_CHILDREN", "8"))
 
     # Monitoring
-    MONITOR_INTERVAL_SEC: float = float(get("FFMPEG_MONITOR_INTERVAL", "2.0"))
-    GRACE_PERIOD_SEC: int = int(get("FFMPEG_GRACE_PERIOD_SEC", "10"))
+    MONITOR_INTERVAL_SEC: float = float(os.getenv("FFMPEG_MONITOR_INTERVAL", "2.0"))
+    GRACE_PERIOD_SEC: int = int(os.getenv("FFMPEG_GRACE_PERIOD_SEC", "10"))
 
 @dataclass
 class ProcessInfo:

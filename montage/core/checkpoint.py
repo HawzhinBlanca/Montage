@@ -21,7 +21,6 @@ except ImportError:
 
 try:
     from ..settings import settings
-    from ..utils.secret_loader import get
     from .db import Database
     REDIS_URL = settings.redis.url.get_secret_value()
 except ImportError:
@@ -29,7 +28,6 @@ except ImportError:
     from pathlib import Path
 
     from montage.settings import settings
-    from montage.utils.secret_loader import get
     from montage.core.db import Database
     REDIS_URL = settings.redis.url.get_secret_value()
 

@@ -11,21 +11,13 @@ from functools import lru_cache
 from pydantic import BaseModel, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Import secure secret loader
-from .utils.secret_loader import (
-    get,
-    get_anthropic_key,
-    get_database_url,
-    get_deepgram_key,
-    get_openai_key,
-    get_redis_url,
-)
+# Legacy secret_loader import removed - Phase 3-5
 
 
 class DatabaseSettings(BaseModel):
     """Database configuration"""
     url: SecretStr = Field(
-        default_factory=lambda: SecretStr(url) if (url := get("DATABASE_URL", "")) else SecretStr("postgresql://localhost/montage")
+        default_factory=lambda: SecretStr(url) if (url := os.getenv("DATABASE_URL", "")) else SecretStr("postgresql://localhost/montage")
     )
     pool_size: int = Field(default=20, ge=1, le=100)
     max_overflow: int = Field(default=40, ge=0, le=200)
@@ -53,7 +45,7 @@ class DatabaseSettings(BaseModel):
 class RedisSettings(BaseModel):
     """Redis configuration"""
     url: SecretStr = Field(
-        default_factory=lambda: SecretStr(url) if (url := get("REDIS_URL", "")) else SecretStr("redis://localhost:6379/0")
+        default_factory=lambda: SecretStr(url) if (url := os.getenv("REDIS_URL", "")) else SecretStr("redis://localhost:6379/0")
     )
     max_connections: int = Field(default=50, ge=1)
     socket_timeout: int = Field(default=5, ge=1)
@@ -65,19 +57,19 @@ class RedisSettings(BaseModel):
 class APIKeysSettings(BaseModel):
     """API keys configuration"""
     openai: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(key) if (key := get_openai_key()) else None
+        default_factory=lambda: SecretStr(key) if (key := os.getenv("OPENAI_API_KEY")) else None
     )
     anthropic: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(key) if (key := get_anthropic_key()) else None
+        default_factory=lambda: SecretStr(key) if (key := os.getenv("ANTHROPIC_API_KEY")) else None
     )
     deepgram: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(key) if (key := get_deepgram_key()) else None
+        default_factory=lambda: SecretStr(key) if (key := os.getenv("DEEPGRAM_API_KEY")) else None
     )
     gemini: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(key) if (key := get("GEMINI_API_KEY", "")) else None
+        default_factory=lambda: SecretStr(key) if (key := os.getenv("GEMINI_API_KEY", "")) else None
     )
     huggingface_token: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(key) if (key := get("HUGGINGFACE_TOKEN", "")) else None
+        default_factory=lambda: SecretStr(key) if (key := os.getenv("HUGGINGFACE_TOKEN", "")) else None
     )
     
     @property
@@ -161,7 +153,7 @@ class SecuritySettings(BaseModel):
     
     # Authentication
     jwt_secret_key: SecretStr = Field(
-        default_factory=lambda: SecretStr(get("JWT_SECRET_KEY", ""))
+        default_factory=lambda: SecretStr(os.getenv("JWT_SECRET_KEY", ""))
     )
     jwt_algorithm: str = Field(default="HS256")
     jwt_expiration_hours: int = Field(default=24, gt=0)
@@ -218,7 +210,7 @@ class MonitoringSettings(BaseModel):
     
     # Sentry
     sentry_dsn: Optional[SecretStr] = Field(
-        default_factory=lambda: SecretStr(dsn) if (dsn := get("SENTRY_DSN", "")) else None
+        default_factory=lambda: SecretStr(dsn) if (dsn := os.getenv("SENTRY_DSN", "")) else None
     )
     sentry_environment: str = Field(default="development")
     sentry_traces_sample_rate: float = Field(default=0.1, ge=0, le=1)

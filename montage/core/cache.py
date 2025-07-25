@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 import redis
 
 from ..utils.logging_config import get_logger
-from ..utils.secret_loader import get
 
 logger = get_logger(__name__)
 

@@ -458,9 +458,9 @@ def _analyze_story_structure_direct(
         return {}
 
     try:
-        from ..utils.secret_loader import get as get_secret
+        import os
 
-        api_key = get_secret("GEMINI_API_KEY") or get_secret("GOOGLE_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
         if not api_key:
             logger.error("No Gemini API key available")

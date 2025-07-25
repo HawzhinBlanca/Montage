@@ -31,7 +31,6 @@ from pydantic import BaseModel
 
 from ..core.db import Database
 from ..utils.logging_config import get_logger
-from ..utils.secret_loader import get
 
 logger = get_logger(__name__)
 
@@ -48,10 +47,10 @@ def _load_allowed_api_keys() -> List[str]:
     """Load allowed API keys from Vault or environment variables"""
     try:
         # Try to get from Vault first
-        from ..utils.secret_loader import get
+        # Legacy secret_loader import removed - Phase 3-5
 
         # Check for comma-separated list in single secret
-        allowed_keys_str = get("ALLOWED_API_KEYS")
+        allowed_keys_str = os.getenv("ALLOWED_API_KEYS")
         if allowed_keys_str:
             keys = [key.strip() for key in allowed_keys_str.split(',') if key.strip()]
             if keys:
@@ -61,7 +60,7 @@ def _load_allowed_api_keys() -> List[str]:
         # Fallback: Check for individual numbered keys
         keys = []
         for i in range(1, 11):  # Support up to 10 API keys
-            key = get(f"API_KEY_{i}")
+            key = os.getenv(f"API_KEY_{i}")
             if key and key != "your-api-key-here":
                 keys.append(key)
 

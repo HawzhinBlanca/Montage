@@ -28,30 +28,30 @@ def test_reload_runtime(monkeypatch):
     from montage.config import reload_settings
     new_cfg = reload_settings()
     assert new_cfg.database_url
-    
+
 def test_v2_pydantic_features(monkeypatch):
     """Test that V2 settings use Pydantic features properly"""
     # This test specifically tests V2 features, so skip if not using V2
     if os.getenv("USE_SETTINGS_V2", "false").lower() != "true":
         # Set it for this test
         monkeypatch.setenv("USE_SETTINGS_V2", "true")
-    
+
     monkeypatch.setenv("MAX_WORKERS", "8")
     monkeypatch.setenv("USE_GPU", "true")
-    
+
     # Clear cache to ensure fresh load
     from montage.config import _load_settings
     _load_settings.cache_clear()
-    
+
     # Import V2 settings directly
     from montage.settings_v2 import get_settings
     settings = get_settings()
-    
+
     # Test legacy compatibility properties
     assert settings.database_url is not None
     assert settings.max_workers == 8
     assert settings.use_gpu is True
-    
+
     # Test structured access
     assert hasattr(settings, 'database')
     assert hasattr(settings, 'processing')

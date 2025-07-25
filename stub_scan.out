@@ -1,1 +1,12 @@
-       0
+# Stub scan for secret_loader references
+# Excluding test files and __pycache__ directories
+
+       1
+
+# All references found are comments indicating removal:
+montage/utils/video_validator.py:# Legacy secret_loader import removed - Phase 3-5
+montage/settings.py:# Legacy secret_loader import removed - Phase 3-5
+montage/api/auth.py:        # Legacy secret_loader import removed - Phase 3-5
+montage/api/web_server.py:# Legacy secret_loader import removed - Phase 3-5
+montage/legacy_adapter.py:# Phase 3-5: Removed secret_loader dependency
+montage/legacy_adapter.py:    """Simple env var getter to replace secret_loader"""

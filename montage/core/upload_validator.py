@@ -17,8 +17,8 @@ from typing import Dict, List, Optional, Tuple
 import magic
 from fastapi import HTTPException, UploadFile
 
+import os
 from ..utils.logging_config import get_logger
-from ..utils.secret_loader import get
 
 logger = get_logger(__name__)
 
@@ -38,27 +38,27 @@ class UploadLimits:
     """P1-01: Upload security limits configuration"""
 
     # File size limits
-    MAX_FILE_SIZE_MB: int = int(get("MAX_UPLOAD_SIZE_MB", "600"))  # 600MB default
+    MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "600"))  # 600MB default
     MAX_FILE_SIZE_BYTES: int = MAX_FILE_SIZE_MB * 1024 * 1024
 
     # Duration limits (seconds)
-    MAX_DURATION_SECONDS: int = int(get("MAX_VIDEO_DURATION_SEC", "3600"))  # 1 hour max
+    MAX_DURATION_SECONDS: int = int(os.getenv("MAX_VIDEO_DURATION_SEC", "3600"))  # 1 hour max
 
     # Rate limiting per user
-    MAX_UPLOADS_PER_HOUR: int = int(get("MAX_UPLOADS_PER_HOUR", "10"))
-    MAX_UPLOADS_PER_DAY: int = int(get("MAX_UPLOADS_PER_DAY", "50"))
+    MAX_UPLOADS_PER_HOUR: int = int(os.getenv("MAX_UPLOADS_PER_HOUR", "10"))
+    MAX_UPLOADS_PER_DAY: int = int(os.getenv("MAX_UPLOADS_PER_DAY", "50"))
 
     # Content validation
-    REQUIRE_MIME_VALIDATION: bool = get("REQUIRE_MIME_VALIDATION", "true").lower() == "true"
+    REQUIRE_MIME_VALIDATION: bool = os.getenv("REQUIRE_MIME_VALIDATION", "true").lower() == "true"
     ALLOWED_EXTENSIONS: List[str] = field(default_factory=lambda: [".mp4", ".mov", ".avi", ".mkv", ".webm"])
     ALLOWED_MIME_TYPES: List[str] = field(default_factory=lambda: [ft.value for ft in FileType])
 
     # Security
-    SCAN_FOR_MALWARE: bool = get("SCAN_FOR_MALWARE", "false").lower() == "true"
-    QUARANTINE_SUSPICIOUS: bool = get("QUARANTINE_SUSPICIOUS", "true").lower() == "true"
+    SCAN_FOR_MALWARE: bool = os.getenv("SCAN_FOR_MALWARE", "false").lower() == "true"
+    QUARANTINE_SUSPICIOUS: bool = os.getenv("QUARANTINE_SUSPICIOUS", "true").lower() == "true"
 
     # Performance limits
-    MAX_CONCURRENT_UPLOADS: int = int(get("MAX_CONCURRENT_UPLOADS", "5"))
+    MAX_CONCURRENT_UPLOADS: int = int(os.getenv("MAX_CONCURRENT_UPLOADS", "5"))
 
 class UploadValidationError(Exception):
     """Custom exception for upload validation failures"""

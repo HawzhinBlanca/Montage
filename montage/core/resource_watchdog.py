@@ -32,7 +32,6 @@ from celery.signals import (
 )
 
 from ..utils.logging_config import get_logger
-from ..utils.secret_loader import get
 
 logger = get_logger(__name__)
 
@@ -48,28 +47,28 @@ class ResourceLimits:
     """P1-02: Configurable resource limits for Celery workers"""
 
     # Memory limits (MB)
-    MAX_MEMORY_MB: int = int(get("CELERY_MAX_MEMORY_MB", "2048"))  # 2GB default
-    MEMORY_WARNING_MB: int = int(get("CELERY_MEMORY_WARNING_MB", "1536"))  # 1.5GB warning
+    MAX_MEMORY_MB: int = int(os.getenv("CELERY_MAX_MEMORY_MB", "2048"))  # 2GB default
+    MEMORY_WARNING_MB: int = int(os.getenv("CELERY_MEMORY_WARNING_MB", "1536"))  # 1.5GB warning
 
     # CPU limits (percentage)
-    MAX_CPU_PERCENT: float = float(get("CELERY_MAX_CPU_PERCENT", "85.0"))
-    CPU_WARNING_PERCENT: float = float(get("CELERY_CPU_WARNING_PERCENT", "70.0"))
+    MAX_CPU_PERCENT: float = float(os.getenv("CELERY_MAX_CPU_PERCENT", "85.0"))
+    CPU_WARNING_PERCENT: float = float(os.getenv("CELERY_CPU_WARNING_PERCENT", "70.0"))
 
     # Task limits
-    MAX_TASK_RUNTIME_SEC: int = int(get("CELERY_MAX_TASK_TIME_SEC", "1800"))  # 30 minutes
-    SOFT_TASK_LIMIT_SEC: int = int(get("CELERY_SOFT_TASK_LIMIT_SEC", "1500"))  # 25 minutes
+    MAX_TASK_RUNTIME_SEC: int = int(os.getenv("CELERY_MAX_TASK_TIME_SEC", "1800"))  # 30 minutes
+    SOFT_TASK_LIMIT_SEC: int = int(os.getenv("CELERY_SOFT_TASK_LIMIT_SEC", "1500"))  # 25 minutes
 
     # File system limits
-    MAX_TEMP_FILES: int = int(get("MAX_TEMP_FILES", "100"))
-    MAX_TEMP_SIZE_MB: int = int(get("MAX_TEMP_SIZE_MB", "5000"))  # 5GB
+    MAX_TEMP_FILES: int = int(os.getenv("MAX_TEMP_FILES", "100"))
+    MAX_TEMP_SIZE_MB: int = int(os.getenv("MAX_TEMP_SIZE_MB", "5000"))  # 5GB
 
     # Process limits
-    MAX_OPEN_FILES: int = int(get("MAX_OPEN_FILES", "1000"))
-    MAX_PROCESSES: int = int(get("MAX_PROCESSES", "50"))
+    MAX_OPEN_FILES: int = int(os.getenv("MAX_OPEN_FILES", "1000"))
+    MAX_PROCESSES: int = int(os.getenv("MAX_PROCESSES", "50"))
 
     # Monitoring intervals
-    MONITORING_INTERVAL_SEC: int = int(get("RESOURCE_MONITOR_INTERVAL", "30"))
-    CLEANUP_INTERVAL_SEC: int = int(get("RESOURCE_CLEANUP_INTERVAL", "300"))  # 5 minutes
+    MONITORING_INTERVAL_SEC: int = int(os.getenv("RESOURCE_MONITOR_INTERVAL", "30"))
+    CLEANUP_INTERVAL_SEC: int = int(os.getenv("RESOURCE_CLEANUP_INTERVAL", "300"))  # 5 minutes
 
 class ResourceWatchdog:
     """

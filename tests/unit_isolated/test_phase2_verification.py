@@ -13,7 +13,7 @@ from unittest.mock import patch
 def test_sys_path_elimination():
     """Verify no sys.path.append instances remain in montage/"""
     montage_dir = Path(__file__).parent.parent.parent / "montage"
-    
+
     sys_path_count = 0
     for py_file in montage_dir.rglob("*.py"):
         try:
@@ -26,7 +26,7 @@ def test_sys_path_elimination():
                         sys_path_count += 1
         except Exception:
             continue
-    
+
     assert sys_path_count == 0, f"Found {sys_path_count} sys.path.append instances"
 
 
@@ -35,11 +35,11 @@ def test_proof_bundle_exists():
     base_dir = Path(__file__).parent.parent.parent
     required_files = [
         "canary_metrics.json",
-        "evaluate_canary.out", 
+        "evaluate_canary.out",
         "perf_baseline.json",
         "stub_scan.out"
     ]
-    
+
     for file_name in required_files:
         file_path = base_dir / file_name
         assert file_path.exists(), f"Missing proof file: {file_name}"
@@ -50,7 +50,7 @@ def test_canary_evaluation_pass():
     """Verify canary evaluation shows PASS status"""
     base_dir = Path(__file__).parent.parent.parent
     eval_file = base_dir / "evaluate_canary.out"
-    
+
     with open(eval_file, 'r') as f:
         content = f.read()
         assert "Overall Status: PASS" in content
@@ -61,7 +61,7 @@ def test_performance_baseline_valid():
     """Verify performance baseline contains valid metrics"""
     base_dir = Path(__file__).parent.parent.parent
     baseline_file = base_dir / "perf_baseline.json"
-    
+
     with open(baseline_file, 'r') as f:
         baseline = json.load(f)
         assert "fps" in baseline

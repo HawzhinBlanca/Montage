@@ -434,12 +434,18 @@ def process_video_pipeline(
     # Add API key validation in strict mode
     if strict:
         console.print("\n🔑 Validating API keys in strict mode...", style="blue")
-        from ..utils.secret_loader import validate_required_secrets
         
-        validation_results = validate_required_secrets()
-        if not validation_results.get("all_valid", False):
-            missing_keys = [key for key, valid in validation_results.items() 
-                          if key != "all_valid" and not valid]
+        # Check required API keys from environment
+        required_keys = {
+            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+            "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY"),
+            "DEEPGRAM_API_KEY": os.getenv("DEEPGRAM_API_KEY"),
+            "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        }
+        
+        missing_keys = [key for key, value in required_keys.items() if not value]
+        
+        if missing_keys:
             console.print(f"❌ STRICT MODE: Missing API keys: {', '.join(missing_keys)}", style="bold red")
             return {
                 "video_path": video_path,

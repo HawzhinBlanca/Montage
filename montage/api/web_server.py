@@ -45,11 +45,7 @@ from ..core.exceptions import (
     InvalidVideoFormatError,
 )
 from ..utils.ffmpeg_process_manager import ffmpeg_process_manager
-from ..utils.secret_loader import (
-    get,
-    get_secret_sources_status,
-    validate_required_secrets,
-)
+# Legacy secret_loader import removed - Phase 3-5
 from .auth import require_api_key, validate_api_key
 from .celery_app import process_video_task
 
@@ -177,8 +173,23 @@ async def validate_secrets_on_startup():
     """
     logger.info("🔑 Validating API secrets on startup...")
 
-    validation_results = validate_required_secrets()
-    sources_status = get_secret_sources_status()
+    # Check required secrets from environment
+    required_keys = [
+        "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DEEPGRAM_API_KEY", 
+        "GEMINI_API_KEY", "JWT_SECRET_KEY", "DATABASE_URL"
+    ]
+    
+    validation_results = {"all_valid": True}
+    sources_status = {}
+    
+    for key in required_keys:
+        value = os.getenv(key)
+        if not value:
+            validation_results[key] = False
+            validation_results["all_valid"] = False
+        else:
+            validation_results[key] = True
+        sources_status[key] = "environment" if value else "not_found"
 
     logger.info(f"📊 Secret sources status: {sources_status}")
 

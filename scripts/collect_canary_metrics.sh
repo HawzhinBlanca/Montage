@@ -19,7 +19,7 @@ q() {
     SECONDS_AGO=$(echo "$DUR" | sed 's/h/* 3600/' | sed 's/m/* 60/' | bc -l 2>/dev/null || echo "7200")
     START_TIME=$(($(date +%s) - ${SECONDS_AGO%.*}))
   fi
-  
+
   curl -sG -H "Authorization: Bearer $TOKEN" \
        --data-urlencode "query=$1" \
        --data-urlencode "start=$START_TIME" \
@@ -38,4 +38,4 @@ jq -n --arg dur "$DUR" '{
   < <(q 'increase(ImportError_total[5m])') \
   > "$OUT"
 
-echo "Canary metrics stored in $OUT" 
+echo "Canary metrics stored in $OUT"

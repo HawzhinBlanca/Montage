@@ -8,13 +8,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-try:
-    from .secret_loader import get
-except ImportError:
-    import sys
-    from pathlib import Path
-
-    from montage.utils.secret_loader import get
+# Legacy secret_loader import removed - Phase 3-5
 try:
     from ..core.db import Database
 except ImportError:
@@ -80,7 +74,7 @@ class VideoValidator:
     """Validates video files and extracts metadata"""
 
     def __init__(self):
-        self.ffprobe_path = get("FFPROBE_PATH", "ffprobe")
+        self.ffprobe_path = os.getenv("FFPROBE_PATH", "ffprobe")
         self.db = Database()
 
     def validate_file(
