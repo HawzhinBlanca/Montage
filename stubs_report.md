@@ -12,12 +12,19 @@ create_smart_story.py:386: pass
 create_smart_story.py:390: pass
 montage/core/checkpoint.py:68: password=parsed.password,
 montage/core/security.py:488: password.encode('utf-8'),
+montage/utils/logging_config.py:573: pass  # Skip invalid patterns
+montage/utils/ffmpeg_utils.py:24: pass
+montage/utils/ffmpeg_utils.py:28: pass
+montage/utils/ffmpeg_utils.py:32: pass
 montage/api/web_server.py:68: pass  # Fallback to IP-only rate limiting
 montage/api/web_server.py:99: pass
 backup_removed_fake_components/create_full_story_video.py:576: pass
 backup_removed_fake_components/create_full_story_video.py:580: pass
 backup_removed_fake_components/create_full_story_video.py:694: pass
 backup_removed_fake_components/create_perfect_video.py:324: pass
+scripts/identify_dead_flags.py:31: pass
+scripts/identify_dead_flags.py:59: pass
+scripts/identify_dead_flags.py:96: pass
 scripts/identify_dead_code.py:33: pass
 scripts/identify_dead_code.py:68: pass
 scripts/evaluate_perf_guard.py:47: passed = current_p95 <= threshold
@@ -31,6 +38,7 @@ scripts/evaluate_canary.py:68: passed = error_rate_pct < threshold
 scripts/evaluate_canary.py:78: passed = import_errors <= threshold
 scripts/evaluate_canary.py:88: passed = cpu_pct <= threshold
 scripts/evaluate_canary.py:98: passed = memory_pct <= threshold
+scripts/identify_consolidation.py:76: pass
 src/core/db.py:35: pass
 src/core/checkpoint.py:39: pass
 src/core/quality_validator.py:14: pass

@@ -39,7 +39,7 @@ async def process_video(request: VideoProcessRequest):
     try:
         # Import Celery task
         from montage.api.celery_tasks import process_video
-        
+
         # Submit task
         task = process_video.delay(
             request.video_path,
@@ -49,13 +49,13 @@ async def process_video(request: VideoProcessRequest):
                 'variant': request.variant
             }
         )
-        
+
         return {
             "job_id": request.job_id,
             "task_id": task.id,
             "status": "submitted"
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -64,16 +64,16 @@ async def get_status(task_id: str):
     """Get task status"""
     try:
         from montage.api.celery_tasks import process_video
-        
+
         task = process_video.AsyncResult(task_id)
-        
+
         return {
             "task_id": task_id,
             "state": task.state,
             "result": task.result if task.state == "SUCCESS" else None,
             "info": task.info
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
