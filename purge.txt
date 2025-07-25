@@ -1,0 +1,12 @@
+src/core/errors.py
+src/core/metrics.py
+src/core/smart_video_editor.py
+src/core/user_success_metrics.py
+src/providers/smart_crop.py
+src/providers/speaker_diarizer.py
+src/providers/transcript_analyzer.py
+src/utils/budget_decorator.py
+src/utils/budget_guard.py
+src/utils/cleanup_manager.py
+src/utils/monitoring_integration.py
+src/utils/retry_utils.py

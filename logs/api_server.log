@@ -1,0 +1,103 @@
+2025-07-21 18:28:44,921 | WARNING | root | WARNING: DATABASE_URL contains common weak passwords. Use strong, unique passwords in production.
+2025-07-21 18:28:48,120 | INFO | src.config | ✅ OpenAI API key configured
+2025-07-21 18:28:48,120 | INFO | src.config | ✅ Anthropic API key configured
+2025-07-21 18:28:48,120 | INFO | src.config | ✅ Deepgram API key configured
+2025-07-21 18:28:48,120 | INFO | src.config | ✅ Config loaded - MAX_COST_USD: $5.0
+[32m[18:28:48.196] INFO    [0m src.utils.logging_config | system:main | Logging configured
+[32m[18:28:48.205] INFO    [0m src.core.metrics     | system:main | Metrics manager initialized
+/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/hub.py:111: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/bin/uvicorn", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/main.py", line 413, in main
+    run(
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/server.py", line 66, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/server.py", line 70, in serve
+    await self._serve(sockets)
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/server.py", line 77, in _serve
+    config.load()
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/config.py", line 435, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/Users/hawzhin/Montage/src/api/web_server.py", line 19, in <module>
+    from .celery_app import process_video_task
+  File "/Users/hawzhin/Montage/src/api/celery_app.py", line 19, in <module>
+    from ..core.analyze_video import analyze_video
+  File "/Users/hawzhin/Montage/src/core/analyze_video.py", line 14, in <module>
+    from pyannote.audio import Pipeline
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pyannote/audio/__init__.py", line 29, in <module>
+    from .core.inference import Inference
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pyannote/audio/core/inference.py", line 33, in <module>
+    from pytorch_lightning.utilities.memory import is_oom_error
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pytorch_lightning/__init__.py", line 27, in <module>
+    from pytorch_lightning.callbacks import Callback  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pytorch_lightning/callbacks/__init__.py", line 14, in <module>
+    from pytorch_lightning.callbacks.batch_size_finder import BatchSizeFinder
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pytorch_lightning/callbacks/batch_size_finder.py", line 26, in <module>
+    from pytorch_lightning.callbacks.callback import Callback
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pytorch_lightning/callbacks/callback.py", line 22, in <module>
+    from pytorch_lightning.utilities.types import STEP_OUTPUT
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/pytorch_lightning/utilities/types.py", line 36, in <module>
+    from torchmetrics import Metric
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/torchmetrics/__init__.py", line 37, in <module>
+    from torchmetrics import functional  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/torchmetrics/functional/__init__.py", line 128, in <module>
+    from torchmetrics.functional.text._deprecated import _bleu_score as bleu_score
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/torchmetrics/functional/text/__init__.py", line 50, in <module>
+    from torchmetrics.functional.text.bert import bert_score
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/torchmetrics/functional/text/bert.py", line 56, in <module>
+    from transformers import AutoModel, AutoTokenizer
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/__init__.py", line 27, in <module>
+    from . import dependency_versions_check
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/dependency_versions_check.py", line 57, in <module>
+    require_version_core(deps[pkg])
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/versions.py", line 117, in require_version_core
+    return require_version(requirement, hint)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/versions.py", line 111, in require_version
+    _compare_versions(op, got_ver, want_ver, requirement, pkg, hint)
+  File "/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/versions.py", line 44, in _compare_versions
+    raise ImportError(
+ImportError: tokenizers>=0.21,<0.22 is required for a normal functioning of this module, but found tokenizers==0.20.3.
+Try: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main
+[32m[18:28:51.055] INFO    [0m src.utils.resource_manager | system:main | Cleaning up all tracked resources
+[32m[18:28:51.114] INFO    [0m src.utils.resource_manager | system:main | Resource cleanup completed

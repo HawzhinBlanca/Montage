@@ -1,0 +1,4 @@
+[32m[17:56:37.863] INFO    [0m montage.utils.logging_config | system:main | Logging configured
+[32m[17:56:37.863] INFO    [0m montage.utils.secure_logging | system:main | Secure logging configured
+Config source=settings_v2
+V2 settings active: _SettingsProxy

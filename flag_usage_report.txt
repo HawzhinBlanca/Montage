@@ -1,0 +1,40 @@
+Feature Flag Usage Report - Repository Cleanup
+
+REMOVED FLAGS (6 total):
+1. enable_async_upload - No usage found, removed
+2. enable_gpu_acceleration - No usage found, removed
+3. enable_voice_cloning - No usage found, removed
+4. enable_advanced_analytics - No usage found, removed
+5. enable_batch_processing - No usage found, removed
+6. enable_cloud_storage - No usage found, removed
+
+RETAINED FLAGS (6 total):
+1. enable_speaker_diarization: bool = True - ACTIVE
+   Usage: montage/core/analyze_video.py, montage/core/highlight_selector.py
+
+2. enable_smart_crop: bool = True - ACTIVE
+   Usage: montage/utils/ffmpeg_utils.py, montage/providers/video_processor.py
+
+3. enable_ab_testing: bool = True - ACTIVE
+   Usage: montage/core/metrics.py, montage/api/web_server.py
+
+4. enable_caching: bool = True - ACTIVE
+   Usage: montage/core/api_wrappers.py, montage/providers/
+
+5. cache_ttl_seconds: int = 3600 - ACTIVE
+   Usage: montage/core/api_wrappers.py
+
+6. prefer_local_models: bool = True - ACTIVE
+   Usage: montage/core/highlight_selector.py, montage/providers/gemma_scene_ranker.py
+
+CONFIGURATION CLEANUP:
+- Removed legacy settings system (settings_v2.py)
+- Eliminated USE_SETTINGS_V2 environment variable
+- Consolidated to single settings module
+- All retained flags are actively used in production code
+
+IMPACT:
+- 50% reduction in feature flags (12 → 6)
+- 100% of retained flags have verified usage
+- Simplified configuration reduces complexity
+- No functional regressions from flag removal

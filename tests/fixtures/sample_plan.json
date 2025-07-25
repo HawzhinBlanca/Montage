@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "source": "/tmp/test_video.mp4",
+  "source_video_path": "/tmp/test_video.mp4",
+  "clips": [
+    {
+      "start": 0,
+      "end": 10,
+      "start_time": 0,
+      "end_time": 10
+    },
+    {
+      "start": 15,
+      "end": 25,
+      "start_time": 15,
+      "end_time": 25
+    }
+  ],
+  "actions": [
+    {
+      "start": 0,
+      "end": 10,
+      "start_time": 0,
+      "end_time": 10
+    },
+    {
+      "start": 15,
+      "end": 25,
+      "start_time": 15,
+      "end_time": 25
+    }
+  ]
+} 

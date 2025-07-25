@@ -1,0 +1,99 @@
+{
+  "test_timestamp": "2025-07-25T22:35:00Z",
+  "test_video": "/Users/hawzhin/Montage/test_video.mp4",
+  "video_duration": "43:15.71",
+  "clips_generated": [
+    "test_video_clip01.mp4",
+    "highlight_with_emoji.mp4"
+  ],
+  "feature_matrix": {
+    "F1_whisper_transcription": "fail",
+    "F2_speaker_diarization": "fail",
+    "F3_ai_beat_detection": "fail",
+    "F4_narrative_flow_reorder": "fail",
+    "F5_9_16_smart_crop": "partial",
+    "F6_animated_captions": "fail",
+    "F7_ebu_r128_loudnorm": "fail",
+    "F8_creative_titles": "fail",
+    "F9_emoji_overlays": "partial",
+    "F10_zombie_reaper": "unknown",
+    "F11_oom_guard": "unknown",
+    "F12_metrics_endpoint": "fail",
+    "F13_ultra_whisper": "fail"
+  },
+  "detailed_results": {
+    "transcription": {
+      "status": "fail",
+      "reason": "No actual Whisper transcription performed",
+      "fallback": "Used mock/fake transcript data"
+    },
+    "ai_highlights": {
+      "status": "fail",
+      "reason": "No AI model actually called",
+      "fallback": "Random time segments selected"
+    },
+    "video_processing": {
+      "smart_crop": {
+        "status": "partial",
+        "actual": "Basic FFmpeg scale/crop to 9:16",
+        "missing": "No face detection or tracking"
+      },
+      "audio_normalization": {
+        "status": "fail",
+        "reason": "AudioNormalizer errors, no EBU R128 applied"
+      },
+      "captions": {
+        "status": "fail",
+        "reason": "No captions generated or embedded"
+      }
+    },
+    "creative_elements": {
+      "titles": {
+        "status": "fail",
+        "reason": "No AI-generated titles, no hashtags"
+      },
+      "emoji_overlays": {
+        "status": "partial",
+        "actual": "Manual FFmpeg drawtext with one emoji",
+        "missing": "No AI-driven emoji selection"
+      }
+    },
+    "pipeline_issues": {
+      "create_intelligent_story": "Script exists but failed to run properly",
+      "montage_cli": "Multiple import and attribute errors",
+      "visual_tracker": "Had to create missing functions",
+      "audio_normalizer": "Module not found, method errors"
+    }
+  },
+  "actual_workflow": [
+    "Attempted to run Montage pipeline - failed with multiple errors",
+    "Fixed various import and missing function errors",
+    "Pipeline still didn't produce proper output",
+    "Manually created clips using basic FFmpeg commands",
+    "No AI features actually worked"
+  ],
+  "working_features": [
+    "Basic video file reading",
+    "Manual FFmpeg crop to 9:16",
+    "Manual static text overlay"
+  ],
+  "failed_features": [
+    "Whisper transcription",
+    "PyAnnote speaker diarization",
+    "Claude/Gemini AI analysis",
+    "Story beat detection",
+    "Narrative reordering",
+    "Face detection/tracking",
+    "Audio loudness normalization",
+    "Animated captions",
+    "AI-generated titles/hashtags",
+    "Metrics endpoint"
+  ],
+  "root_causes": [
+    "Missing API integrations",
+    "Incomplete codebase",
+    "Mock functions instead of real implementations",
+    "No actual AI model calls",
+    "Missing dependencies"
+  ]
+}

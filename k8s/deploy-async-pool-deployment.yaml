@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: montage-async-pool-canary
+  namespace: montage-staging
+  labels:
+    app: montage
+    version: async-pool-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: montage
+      version: async-pool-canary
+  template:
+    metadata:
+      labels:
+        app: montage
+        version: async-pool-canary
+    spec:
+      containers:
+      - name: montage
+        image: montage:async-pool
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: USE_ASYNC_POOL
+          value: "true"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: montage-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: montage-secrets
+              key: redis-url
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: montage-secrets
+              key: jwt-secret-key
+        - name: ENVIRONMENT
+          value: "staging"
+        - name: LOG_LEVEL
+          value: "INFO"
+        # Pool configuration
+        - name: DB_POOL_SIZE
+          value: "20"
+        - name: DB_POOL_MAX_OVERFLOW
+          value: "10"
+        - name: DB_POOL_TIMEOUT
+          value: "30"
+        - name: DB_POOL_RECYCLE
+          value: "3600"
+        - name: DB_POOL_PRE_PING
+          value: "true"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3

@@ -1,0 +1,44 @@
+# Feature Flag Cleanup Recommendations
+
+## Dead Feature Flags to Remove
+- enable_audio_ducking
+- enable_emotion_analysis
+- enable_hdr_processing
+- ollama_model
+- use_ollama_by_default
+- whisper_model_size
+
+## Legacy Environment Variables to Remove
+
+### USE_SETTINGS_V2
+Recommendation: Remove - settings v2 migration complete
+Locations:
+- montage/config.py
+
+### USE_GPU
+Recommendation: Migrate to structured settings
+Locations:
+- montage/settings_v2.py
+- montage/settings_v2.py
+- montage/legacy_adapter.py
+
+### MAX_WORKERS
+Recommendation: Migrate to structured settings
+Locations:
+- montage/settings_v2.py
+- montage/settings_v2.py
+- montage/legacy_adapter.py
+
+### CACHE_TTL
+Recommendation: Migrate to structured settings
+Locations:
+- montage/settings_v2.py
+- montage/settings_v2.py
+- montage/legacy_adapter.py
+
+### MAX_COST_USD
+Recommendation: Migrate to structured settings
+Locations:
+- montage/settings_v2.py
+- montage/settings_v2.py
+- montage/legacy_adapter.py

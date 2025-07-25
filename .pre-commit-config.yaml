@@ -1,0 +1,45 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.5
+    hooks:
+      - id: ruff
+        name: ruff (lint + format)
+        args: ["--unsafe-fixes", "--show-fixes"]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        name: bandit (security scan)
+        args: ["-r", "montage", "-ll"]
+
+  - repo: local
+    hooks:
+      - id: vulture-dead-code
+        name: vulture (dead code)
+        entry: vulture montage --min-confidence 80
+        language: system
+        types: [python]
+      - id: radon-complexity
+        name: radon (ABC <= B)
+        entry: bash -c 'radon cc montage -na | grep -E "\b[C-F]\b" && { echo "Complexity grade too high"; exit 1; } || true'
+        language: system
+        types: [python]
+      - id: no-unchecked-subprocess
+        name: no-unchecked-subprocess
+        entry: python scripts/no_unchecked_subprocess.py montage
+        language: python
+        pass_filenames: false
+      - id: stubs-report
+        name: stubs-report
+        entry: python scripts/stubs_report.py
+        language: python
+        pass_filenames: false

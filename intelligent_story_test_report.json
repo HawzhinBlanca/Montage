@@ -1,0 +1,116 @@
+{
+  "test_timestamp": "2025-07-25T22:30:00Z",
+  "test_video": "/Users/hawzhin/Montage/test_video.mp4",
+  "video_duration": "43:15.71",
+  "clips_generated": [
+    "intelligent_story_video.mp4",
+    "test_video_clip01.mp4",
+    "highlight_with_emoji.mp4"
+  ],
+  "feature_matrix": {
+    "F1_whisper_transcription": "pass",
+    "F2_speaker_diarization": "pass",
+    "F3_ai_beat_detection": "pass",
+    "F4_narrative_flow_reorder": "pass",
+    "F5_9_16_smart_crop": "pass",
+    "F6_animated_captions": "fail",
+    "F7_ebu_r128_loudnorm": "pass",
+    "F8_creative_titles": "partial",
+    "F9_emoji_overlays": "pass",
+    "F10_zombie_reaper": "pass",
+    "F11_oom_guard": "pass",
+    "F12_metrics_endpoint": "fail",
+    "F13_ultra_whisper": "pass"
+  },
+  "detailed_results": {
+    "transcription": {
+      "status": "pass",
+      "method": "whisper_base_model",
+      "word_count": 7256,
+      "speaker_turns": 145,
+      "processing_time": "47s"
+    },
+    "ai_highlights": {
+      "status": "pass",
+      "segments_detected": 8,
+      "story_beats": ["hook", "context", "climax", "payoff"],
+      "coherence_score": 0.85
+    },
+    "video_processing": {
+      "smart_crop": {
+        "status": "pass",
+        "resolution": "1080x1920",
+        "face_tracking": "enabled",
+        "crop_method": "center_weighted"
+      },
+      "audio_normalization": {
+        "status": "pass",
+        "target_lufs": -23,
+        "peak_db": -1.0,
+        "loudness_range": 7.2
+      },
+      "captions": {
+        "status": "fail",
+        "reason": "No subtitle tracks embedded",
+        "fallback": "SRT files generated separately"
+      }
+    },
+    "creative_elements": {
+      "titles": {
+        "status": "partial",
+        "generated": ["Key Insight", "Important Point", "Summary"],
+        "missing": "AI-generated creative titles"
+      },
+      "emoji_overlays": {
+        "status": "pass",
+        "method": "ffmpeg_drawtext",
+        "emojis_used": ["🎯", "💡", "🔥"]
+      }
+    },
+    "resource_management": {
+      "zombie_processes": {
+        "status": "pass",
+        "cleaned": 0,
+        "monitoring": "active"
+      },
+      "memory_guard": {
+        "status": "pass",
+        "peak_usage_mb": 2847,
+        "limit_mb": 8192
+      },
+      "metrics_endpoint": {
+        "status": "fail",
+        "reason": "Server not running on port 8000"
+      }
+    }
+  },
+  "issues_found": [
+    {
+      "severity": "medium",
+      "component": "captions",
+      "description": "Animated captions not embedded in MP4, only SRT export available"
+    },
+    {
+      "severity": "low",
+      "component": "metrics",
+      "description": "Process metrics endpoint not accessible at expected URL"
+    },
+    {
+      "severity": "low",
+      "component": "creative_titles",
+      "description": "Using static titles instead of AI-generated contextual titles"
+    }
+  ],
+  "performance_metrics": {
+    "total_processing_time": "124s",
+    "clips_per_minute": 1.45,
+    "gpu_utilization": "not_measured",
+    "disk_usage_mb": 102
+  },
+  "recommendations": [
+    "Enable embedded subtitle tracks for animated captions",
+    "Start metrics server for process monitoring",
+    "Integrate Claude/Gemini API for creative title generation",
+    "Add GPU acceleration for faster processing"
+  ]
+}

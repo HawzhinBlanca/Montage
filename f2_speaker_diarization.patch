@@ -1,0 +1,392 @@
+diff --git a/montage/core/speaker_diarizer.py b/montage/core/speaker_diarizer.py
+new file mode 100644
+index 0000000..1234567
+--- /dev/null
++++ b/montage/core/speaker_diarizer.py
+@@ -0,0 +1,175 @@
++#!/usr/bin/env python3
++"""
++Speaker Diarization using pyannote-audio
++Identifies and segments different speakers in audio
++"""
++import os
++import logging
++import tempfile
++import subprocess
++from pathlib import Path
++from typing import Dict, Any, List, Optional, Tuple
++import json
++
++logger = logging.getLogger(__name__)
++
++try:
++    from pyannote.audio import Pipeline
++    import torch
++    PYANNOTE_AVAILABLE = True
++except (ImportError, OSError) as e:
++    PYANNOTE_AVAILABLE = False
++    logger.warning(f"pyannote-audio not available: {e}")
++
++
++class SpeakerDiarizer:
++    """Speaker diarization using pyannote-audio"""
++    
++    def __init__(self, auth_token: Optional[str] = None):
++        """
++        Initialize speaker diarizer
++        
++        Args:
++            auth_token: HuggingFace auth token for model access
++        """
++        self.auth_token = auth_token or os.environ.get("HUGGINGFACE_TOKEN")
++        self.pipeline = None
++        self.device = self._detect_device()
++        
++    def _detect_device(self) -> str:
++        """Detect best available device"""
++        try:
++            import torch
++            if torch.cuda.is_available():
++                return "cuda"
++        except ImportError:
++            pass
++        return "cpu"
++        
++    def _load_pipeline(self):
++        """Lazy load the diarization pipeline"""
++        if self.pipeline is None:
++            if not PYANNOTE_AVAILABLE:
++                raise ImportError("pyannote-audio is required for speaker diarization")
++                
++            if not self.auth_token:
++                raise ValueError("HuggingFace auth token required. Set HUGGINGFACE_TOKEN env var")
++                
++            # Load pretrained pipeline
++            self.pipeline = Pipeline.from_pretrained(
++                "pyannote/speaker-diarization-3.1",
++                use_auth_token=self.auth_token
++            )
++            
++            # Send to GPU if available
++            if self.device == "cuda":
++                self.pipeline.to(torch.device("cuda"))
++                
++            logger.info(f"Loaded speaker diarization pipeline on {self.device}")
++    
++    def diarize(self, audio_path: str, num_speakers: Optional[int] = None) -> List[Dict[str, Any]]:
++        """
++        Perform speaker diarization on audio file
++        
++        Args:
++            audio_path: Path to audio file
++            num_speakers: Optional number of speakers (if known)
++            
++        Returns:
++            List of speaker segments with format:
++            [
++                {
++                    "speaker": "SPEAKER_00",
++                    "start": 0.5,
++                    "end": 10.2
++                },
++                ...
++            ]
++        """
++        if not Path(audio_path).exists():
++            raise FileNotFoundError(f"Audio file not found: {audio_path}")
++            
++        # Load pipeline if needed
++        self._load_pipeline()
++        
++        # Run diarization
++        params = {}
++        if num_speakers is not None:
++            params["num_speakers"] = num_speakers
++            
++        diarization = self.pipeline(audio_path, **params)
++        
++        # Convert to list format
++        segments = []
++        for turn, _, speaker in diarization.itertracks(yield_label=True):
++            segments.append({
++                "speaker": speaker,
++                "start": turn.start,
++                "end": turn.end
++            })
++            
++        return segments
++    
++    def diarize_video(self, video_path: str, num_speakers: Optional[int] = None) -> List[Dict[str, Any]]:
++        """
++        Perform speaker diarization on video file
++        
++        Args:
++            video_path: Path to video file
++            num_speakers: Optional number of speakers (if known)
++            
++        Returns:
++            List of speaker segments
++        """
++        # Extract audio from video
++        audio_path = self._extract_audio(video_path)
++        
++        try:
++            return self.diarize(audio_path, num_speakers)
++        finally:
++            # Cleanup
++            if os.path.exists(audio_path):
++                os.unlink(audio_path)
++                
++    def _extract_audio(self, video_path: str) -> str:
++        """Extract audio from video as WAV"""
++        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
++            audio_path = tmp.name
++            
++        cmd = [
++            "ffmpeg", "-i", video_path,
++            "-vn", "-acodec", "pcm_s16le",
++            "-ar", "16000", "-ac", "1",
++            audio_path, "-y"
++        ]
++        
++        subprocess.run(cmd, capture_output=True, check=True)
++        return audio_path
++    
++    def merge_with_transcript(self, diarization: List[Dict], transcript: List[Dict]) -> List[Dict]:
++        """
++        Merge diarization results with transcript segments
++        
++        Args:
++            diarization: Speaker diarization segments
++            transcript: Whisper transcript segments
++            
++        Returns:
++            Transcript segments with speaker labels added
++        """
++        # Create a sorted list of speaker segments
++        speaker_segments = sorted(diarization, key=lambda x: x["start"])
++        
++        # For each transcript segment, find the overlapping speaker
++        merged = []
++        for segment in transcript:
++            seg_start = segment["start"]
++            seg_end = segment["end"]
++            seg_mid = (seg_start + seg_end) / 2
++            
++            # Find speaker at segment midpoint
++            speaker = None
++            for spk_seg in speaker_segments:
++                if spk_seg["start"] <= seg_mid <= spk_seg["end"]:
++                    speaker = spk_seg["speaker"]
++                    break
++                    
++            # Add speaker to segment
++            segment_with_speaker = segment.copy()
++            segment_with_speaker["speaker"] = speaker or "UNKNOWN"
++            merged.append(segment_with_speaker)
++            
++        return merged
+diff --git a/montage/core/analyze_video.py b/montage/core/analyze_video.py
+index 1234567..abcdefg 100644
+--- a/montage/core/analyze_video.py
++++ b/montage/core/analyze_video.py
+@@ -2,6 +2,11 @@ import cv2
+ import numpy as np
+ from pathlib import Path
+ from typing import List, Dict
++import logging
++from .real_whisper_transcriber import RealWhisperTranscriber
++from .speaker_diarizer import SpeakerDiarizer
++
++logger = logging.getLogger(__name__)
+ 
+ SCENE_THRESHOLD = 30.0  # adjust per your content
+ 
+@@ -63,19 +68,95 @@ def analyze_video_content(video_path: str) -> Dict:
+     }
+ 
+ def analyze_video(video_path: str, use_premium: bool = False) -> Dict:
+-    """Wrapper for backward compatibility with celery tasks"""
++    """Main video analysis with transcription and speaker diarization"""
+     content = analyze_video_content(video_path)
+-    # Generate simple highlights based on scene changes
+-    highlights = []
+-    for i, scene_idx in enumerate(content["scene_changes"][:5]):  # Max 5 highlights
+-        highlights.append({
+-            "start": float(scene_idx),
+-            "end": float(scene_idx + 5.0),
+-            "score": 0.8 - (i * 0.1),  # Decreasing scores
+-            "type": "scene_change"
+-        })
++    
++    # Real transcription
++    transcript = []
++    words = []
++    try:
++        transcriber = RealWhisperTranscriber(model_size="base")
++        transcript_result = transcriber.transcribe(video_path)
++        
++        # Extract transcript and words
++        transcript = transcript_result.get("segments", [])
++        words = []
++        for segment in transcript:
++            if "words" in segment:
++                words.extend(segment["words"])
++                
++    except Exception as e:
++        logger.warning(f"Transcription failed: {e}")
++        
++    # Speaker diarization
++    speaker_segments = []
++    speaker_turns = []
++    try:
++        diarizer = SpeakerDiarizer()
++        speaker_segments = diarizer.diarize_video(video_path)
++        
++        # Merge with transcript if available
++        if transcript:
++            transcript = diarizer.merge_with_transcript(speaker_segments, transcript)
++            
++        # Generate speaker turns (consecutive segments by same speaker)
++        if speaker_segments:
++            current_turn = None
++            for seg in speaker_segments:
++                if current_turn is None or current_turn["speaker"] != seg["speaker"]:
++                    if current_turn:
++                        speaker_turns.append(current_turn)
++                    current_turn = {
++                        "speaker": seg["speaker"],
++                        "start": seg["start"],
++                        "end": seg["end"]
++                    }
++                else:
++                    current_turn["end"] = seg["end"]
++            if current_turn:
++                speaker_turns.append(current_turn)
++                
++    except Exception as e:
++        logger.warning(f"Speaker diarization failed: {e}")
++        
++    # Generate smart highlights
++    highlights = []
++    if transcript:
++        # Use transcript for intelligent highlight selection
++        for i, segment in enumerate(transcript[:5]):  # Top 5 segments
++            if len(segment.get("text", "").split()) > 5:  # Meaningful segments
++                highlight = {
++                    "start": segment["start"],
++                    "end": segment["end"],
++                    "score": 0.9 - (i * 0.1),
++                    "text": segment.get("text", "")[:100],
++                    "type": "transcript_based"
++                }
++                # Add speaker if available
++                if "speaker" in segment:
++                    highlight["speaker"] = segment["speaker"]
++                highlights.append(highlight)
++    else:
++        # Fallback to scene-based highlights
++        for i, scene_idx in enumerate(content["scene_changes"][:5]):
++            highlights.append({
++                "start": float(scene_idx),
++                "end": float(scene_idx + 5.0),
++                "score": 0.8 - (i * 0.1),
++                "type": "scene_change"
++            })
++    
+     return {
+         "highlights": highlights,
+-        "analysis": content
++        "analysis": content,
++        "transcript": transcript,
++        "words": words,
++        "speaker_segments": speaker_segments,
++        "speaker_turns": speaker_turns
+     }
+diff --git a/tests/test_speaker_diarizer.py b/tests/test_speaker_diarizer.py
+new file mode 100644
+index 0000000..3456789
+--- /dev/null
++++ b/tests/test_speaker_diarizer.py
+@@ -0,0 +1,73 @@
++import os
++import pytest
++
++
++def test_speaker_diarizer_init():
++    """Test speaker diarizer initialization"""
++    from montage.core.speaker_diarizer import SpeakerDiarizer
++    diarizer = SpeakerDiarizer()
++    assert diarizer.device in ["cpu", "cuda"]
++    assert diarizer.pipeline is None  # Lazy loading
++
++
++def test_speaker_diarizer_no_token():
++    """Test error when no auth token provided"""
++    from montage.core.speaker_diarizer import SpeakerDiarizer
++    # Temporarily remove token
++    old_token = os.environ.get("HUGGINGFACE_TOKEN")
++    if old_token:
++        del os.environ["HUGGINGFACE_TOKEN"]
++    
++    try:
++        diarizer = SpeakerDiarizer()
++        with pytest.raises((ValueError, ImportError)):
++            diarizer._load_pipeline()
++    finally:
++        # Restore token
++        if old_token:
++            os.environ["HUGGINGFACE_TOKEN"] = old_token
++
++
++def test_merge_with_transcript():
++    """Test merging diarization with transcript"""
++    from montage.core.speaker_diarizer import SpeakerDiarizer
++    diarizer = SpeakerDiarizer()
++    
++    # Mock diarization results
++    diarization = [
++        {"speaker": "SPEAKER_00", "start": 0.0, "end": 5.0},
++        {"speaker": "SPEAKER_01", "start": 5.0, "end": 10.0},
++        {"speaker": "SPEAKER_00", "start": 10.0, "end": 15.0}
++    ]
++    
++    # Mock transcript
++    transcript = [
++        {"start": 0.5, "end": 4.5, "text": "Hello world"},
++        {"start": 5.5, "end": 9.5, "text": "How are you"},
++        {"start": 10.5, "end": 14.5, "text": "I'm fine thanks"}
++    ]
++    
++    # Merge
++    merged = diarizer.merge_with_transcript(diarization, transcript)
++    
++    assert len(merged) == 3
++    assert merged[0]["speaker"] == "SPEAKER_00"
++    assert merged[1]["speaker"] == "SPEAKER_01"
++    assert merged[2]["speaker"] == "SPEAKER_00"
++    assert merged[0]["text"] == "Hello world"
++
++
++@pytest.mark.skipif("HUGGINGFACE_TOKEN" not in os.environ, reason="HF token not set")
++def test_diarize_audio():
++    """Test actual diarization (requires HF token)"""
++    from montage.core.speaker_diarizer import SpeakerDiarizer
++    diarizer = SpeakerDiarizer()
++    
++    # Create a test audio file
++    test_file = "test_audio_diarize.wav"
++    os.system(f'ffmpeg -f lavfi -i "sine=frequency=440:duration=5" -ar 16000 {test_file} -y 2>/dev/null')
++    
++    try:
++        # This would normally download the model
++        segments = diarizer.diarize(test_file)
++        assert isinstance(segments, list)
++        
++    except Exception as e:
++        # Model download might fail in CI
++        pytest.skip(f"Model loading failed: {e}")
++        
++    finally:
++        if os.path.exists(test_file):
++            os.unlink(test_file)

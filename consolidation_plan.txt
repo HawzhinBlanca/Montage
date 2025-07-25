@@ -1,0 +1,177 @@
+# Utility Consolidation Plan
+
+## LOGGING
+Files to consolidate (34):
+- montage/utils/video_validator.py
+- montage/utils/memory_manager.py
+- montage/utils/logging_config.py
+- montage/utils/ffmpeg_process_manager.py
+- montage/utils/async_utils.py
+- montage/utils/memory_init.py
+- montage/utils/resource_manager.py
+- montage/utils/secure_logging.py
+- montage/utils/ffmpeg_utils.py
+- montage/core/director_wrapper.py
+- montage/core/metrics.py
+- montage/core/db.py
+- montage/core/upload_validator.py
+- montage/core/highlight_merger.py
+- montage/core/improved_diarization.py
+- montage/core/checkpoint.py
+- montage/core/highlight_selector.py
+- montage/core/ffmpeg_editor.py
+- montage/core/rate_limiter.py
+- montage/core/cache.py
+- montage/core/api_wrappers.py
+- montage/core/beats.py
+- montage/core/rate_limit_monitor.py
+- montage/core/whisper_transcriber.py
+- montage/core/pipeline.py
+- montage/core/rate_limit_config.py
+- montage/core/diarization.py
+- montage/core/exceptions.py
+- montage/core/cost.py
+- montage/core/performance.py
+- montage/core/analyze.py
+- montage/core/success_gate.py
+- montage/core/db_metrics.py
+- montage/core/cost_guard.py
+
+## MEMORY_MANAGEMENT
+Files to consolidate (9):
+- montage/utils/memory_manager.py
+- montage/utils/logging_config.py
+- montage/utils/memory_init.py
+- montage/utils/resource_manager.py
+- montage/core/highlight_merger.py
+- montage/core/cache.py
+- montage/core/exceptions.py
+- montage/core/performance.py
+- montage/core/filter_chain.py
+
+## RESOURCE_MANAGEMENT
+Files to consolidate (13):
+- montage/utils/memory_manager.py
+- montage/utils/memory_init.py
+- montage/utils/resource_manager.py
+- montage/core/director_wrapper.py
+- montage/core/metrics.py
+- montage/core/upload_validator.py
+- montage/core/highlight_selector.py
+- montage/core/rate_limiter.py
+- montage/core/pipeline.py
+- montage/core/exceptions.py
+- montage/core/cost.py
+- montage/core/performance.py
+- montage/core/success_gate.py
+
+## ERROR_HANDLING
+Files to consolidate (37):
+- montage/utils/video_validator.py
+- montage/utils/memory_manager.py
+- montage/utils/logging_config.py
+- montage/utils/ffmpeg_process_manager.py
+- montage/utils/async_utils.py
+- montage/utils/memory_init.py
+- montage/utils/resource_manager.py
+- montage/utils/secure_logging.py
+- montage/utils/ffmpeg_utils.py
+- montage/core/director_wrapper.py
+- montage/core/metrics.py
+- montage/core/planner.py
+- montage/core/db.py
+- montage/core/upload_validator.py
+- montage/core/improved_diarization.py
+- montage/core/checkpoint.py
+- montage/core/highlight_selector.py
+- montage/core/ffmpeg_editor.py
+- montage/core/security.py
+- montage/core/quality_validator.py
+- montage/core/rate_limiter.py
+- montage/core/cache.py
+- montage/core/api_wrappers.py
+- montage/core/beats.py
+- montage/core/rate_limit_monitor.py
+- montage/core/whisper_transcriber.py
+- montage/core/pipeline.py
+- montage/core/rate_limit_config.py
+- montage/core/diarization.py
+- montage/core/exceptions.py
+- montage/core/cost.py
+- montage/core/performance.py
+- montage/core/analyze.py
+- montage/core/success_gate.py
+- montage/core/db_metrics.py
+- montage/core/analyze_video.py
+- montage/core/cost_guard.py
+
+## VALIDATION
+Files to consolidate (17):
+- montage/utils/video_validator.py
+- montage/utils/ffmpeg_utils.py
+- montage/core/planner.py
+- montage/core/plan.py
+- montage/core/db.py
+- montage/core/upload_validator.py
+- montage/core/checkpoint.py
+- montage/core/security.py
+- montage/core/quality_validator.py
+- montage/core/rate_limiter.py
+- montage/core/cache.py
+- montage/core/api_wrappers.py
+- montage/core/rate_limit_monitor.py
+- montage/core/rate_limit_config.py
+- montage/core/cost.py
+- montage/core/performance.py
+- montage/core/cost_guard.py
+
+## PROCESS_MANAGEMENT
+Files to consolidate (27):
+- montage/utils/video_validator.py
+- montage/utils/memory_manager.py
+- montage/utils/logging_config.py
+- montage/utils/ffmpeg_process_manager.py
+- montage/utils/memory_init.py
+- montage/utils/resource_manager.py
+- montage/utils/ffmpeg_utils.py
+- montage/core/director_wrapper.py
+- montage/core/metrics.py
+- montage/core/planner.py
+- montage/core/plan.py
+- montage/core/highlight_merger.py
+- montage/core/improved_diarization.py
+- montage/core/checkpoint.py
+- montage/core/highlight_selector.py
+- montage/core/ffmpeg_editor.py
+- montage/core/security.py
+- montage/core/rate_limiter.py
+- montage/core/cache.py
+- montage/core/beats.py
+- montage/core/pipeline.py
+- montage/core/rate_limit_config.py
+- montage/core/exceptions.py
+- montage/core/performance.py
+- montage/core/analyze.py
+- montage/core/success_gate.py
+- montage/core/filter_chain.py
+
+## Combine all logging functionality
+Action: merge
+Source: montage/utils/secure_logging.py
+Target: montage/utils/logging_config.py
+
+## Unified memory/resource management
+Action: merge
+Source: montage/utils/memory_init.py
+Target: montage/utils/memory_manager.py
+
+## Unified memory/resource management
+Action: merge
+Source: montage/utils/resource_manager.py
+Target: montage/utils/memory_manager.py
+
+## Consolidate FFmpeg functionality
+Action: merge
+Source: montage/utils/ffmpeg_process_manager.py
+Target: montage/utils/ffmpeg_utils.py
+

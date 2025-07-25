@@ -1,68 +1,179 @@
-Your Guiding Philosophy: The Three-Phase Approach
-Before you write a single line of code, commit to this philosophy. Trying to build the final, intelligent, scalable system from day one will lead to failure.
+Below is a machine-task spec you can drop into any competent Dev-Agent (GitHub Copilot Workspace, GPT-Engineer, Gemini Code Assist, etc.).
+It contains only file‐creation commands, shell steps, and strict acceptance tests—no long code blobs.
+Running these tasks end-to-end will generate the exact working pipeline described earlier.
 
-Phase 1: Prove It Manually. Build the simplest possible version first. Use the n8n UI or a single Python script. Does it successfully cut a video based on an AI prompt? Prove the core concept works before you optimize it.
+⸻
 
-Phase 2: Automate the Proven Process. Once you have a working workflow_template.json or a core script, write the automation around it. Implement the database, the job queue, and the CI pipeline.
+0. Repo bootstrap
 
-Phase 3: Harden & Add Intelligence. With a reliable, automated foundation, you can now safely add the advanced features: the spring-damped cropping, the performance feedback loop, and the cost-control dashboards.
+- mkdir: [src, tests, cleanup_archives]
+- touch: [schema.sql, docker-compose.yml, bootstrap.sh, requirements.txt, .env.example]
 
-Pillar 1: The Datastore & State Management (The Foundation)
-This is the most critical part. Get this wrong, and your system will not scale.
 
-Use PostgreSQL, Not SQLite. This is non-negotiable. You need a database designed for concurrent operations. Your very first task is to set up a PostgreSQL instance and implement the schema for video_job and job_checkpoint tables.
+⸻
 
-Implement a Thread-Safe Connection Pool. In your Python code, use psycopg2.pool.ThreadedConnectionPool to manage database connections. This prevents your application from deadlocking when you process multiple videos at once.
+1. Core dependency list
 
-Use Redis for Checkpoints. Your system will crash. To avoid re-running expensive jobs from scratch, use Redis to save the state of a job after each major step (analysis_complete, highlights_generated, etc.). On startup, your job runner must first check Redis for a checkpoint and resume from where it left off.
+- write_file: requirements.txt
+  content: |
+    faster-whisper==0.10.1
+    deepgram-sdk==2.14.1
+    pyannote.audio==3.2.1
+    openai==1.30.2
+    anthropic==0.18.2
+    opencv-python-headless==4.10.0.82
+    ffmpeg-python==0.2.0
+    rich==13.7.1
+    tqdm==4.66.4
+    psycopg2-binary==2.9.9
+    redis==5.0.4
+    prometheus-client==0.20.0
+    bottle==0.12.25
+    python-dotenv==1.0.1
 
-Pillar 2: The I/O & Editing Engine (The Factory Floor)
-This is where you'll gain performance and reliability.
 
-Use the Right Tool for the Job:
+⸻
 
-PyAV for Analysis: Use it only for what it excels at: efficiently extracting frames for your vision AI.
+2. Docker / infra
 
-FFmpeg for Editing: Use it for everything else. It is the battle-tested, industry standard. Do not try to re-implement its features in pure Python.
+- write_file: docker-compose.yml
+  content: |
+    version: "3.9"
+    services:
+      postgres:
+        image: postgres:15
+        environment: { POSTGRES_PASSWORD: pass }
+        ports: ["5432:5432"]
+      redis:
+        image: redis:7.2-alpine
+        ports: ["6379:6379"]
+      prometheus:
+        image: prom/prometheus
+        ports: ["9090:9090"]
 
-Avoid Intermediate Files at All Costs. Do not write dozens of temporary clip files to disk. This will destroy your performance.
 
-Implement a FIFO (Named Pipe) Pipeline: Your first ffmpeg process (which cuts segments) should stream its output into a FIFO pipe. Your second ffmpeg process (which concatenates and applies transitions) should read from that pipe. This keeps the data in memory and is drastically faster.
+⸻
 
-Use the Concat Demuxer. Do not build a massive, complex filter graph string. It will break. Generate a simple text file listing the segments and use ffmpeg -f concat -i concat_list.txt .... This is the correct way to join many clips.
+3. DB schema
 
-Handle Corrupted Inputs. Before processing, run a quick ffprobe sanity check on every input video to ensure it's not corrupted (e.g., check for a "moov atom"). Fail the job immediately if it is.
+- write_file: schema.sql
+  content: |
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE TABLE IF NOT EXISTS transcript_cache(
+      sha256 CHAR(64) PRIMARY KEY,
+      transcript TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW());
 
-Pillar 3: The AI "Brain" (The Creative Director)
-This is where you'll get your quality.
 
-Go Multi-Modal. Don't just rely on the transcript. Your system's intelligence comes from fusing three data streams:
+⸻
 
-Text: What was said.
+4. Bootstrap script
 
-Audio: The emotion and energy of how it was said.
+- write_file: bootstrap.sh
+  mode: 755
+  content: |
+    #!/usr/bin/env bash
+    set -e
+    python -m venv .venv && . .venv/bin/activate
+    pip install -r requirements.txt
+    docker compose up -d postgres redis prometheus
+    python - <<'PY'
+    import psycopg2, pathlib, os
+    from dotenv import load_dotenv; load_dotenv()
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    conn.cursor().execute(pathlib.Path("schema.sql").read_text()); conn.commit()
+    PY
+    echo "Bootstrap complete."
 
-Visuals: The key reactions and gestures.
 
-Chunk Long Transcripts. An LLM cannot process a two-hour transcript in one go. Break it into overlapping chunks, find highlights in each, and then use a deterministic scoring rule (score = keyword_density × audio_energy) to merge and rank the best highlights from all chunks.
+⸻
 
-Use a Proper EDL Schema. Do not use .srt files for your edit plan. Use a structured JSON format (an Edit Decision List) that can specify not just the cuts, but also transitions, audio levels, and effects for each segment.
+5. Source-tree stubs (agent to fill)
 
-Pillar 4: Production Readiness (The Safety Net)
-This is what separates a project from a product.
+- create_python_module: src.config
+  description: "Load env vars, expose DATABASE_URL, REDIS_URL, API keys, MAX_COST_USD"
 
-Implement Global Audio Normalization. Do not normalize audio on a per-segment basis; this causes audible volume jumps. Perform a two-pass analysis: the first pass scans the entire source audio to determine the global loudness parameters, and the second pass applies those consistent values to each segment during encoding.
+- create_python_module: src.analyze_video
+  description: |
+    Functions:
+      sha256_file(path)        -> str
+      transcribe_faster_whisper(wav) -> list[word dict]
+      transcribe_deepgram(wav)       -> list[word dict]
+      rover_merge(fw, dg)            -> list[word dict]
+      diarize(path)                  -> list[turn dict]
+      align_speakers(words, turns)   -> list[word dict]
+      analyze_video(src)             -> {"sha": str, "words": [...], "transcript": str}
 
-Manage Color Space Explicitly. Assume all video inputs are lying about their color space. Use ffprobe to detect the input space. If it's HDR, fail the job (unless you're prepared to handle tone mapping). For all other inputs, explicitly insert an ffmpeg filter (zscale) to convert them to the standard BT.709 for delivery.
+- create_python_module: src.highlight_selector
+  description: |
+    Local rule scorer + Claude/GPT chunk merge (cost-capped).
+    choose_highlights(words, audio_energy, mode="smart|premium") -> list[clip dict]
 
-Build a CI/CD Pipeline from Day One. Use GitHub Actions (or similar). On every code change, your CI pipeline must automatically run your test suite, including a test that processes a sample video and checks the output file's hash against a known-good version. This prevents regressions.
+- create_python_module: src.ffmpeg_utils
+  description: |
+    Helpers:
+      make_concat_file(paths) -> str
+      burn_captions(video, srt, out_path)
 
-Instrument for Cost and Performance. You must know what your system is doing.
+- create_python_module: src.resolve_mcp
+  description: |
+    Bottle server exposing /buildTimeline + /renderProxy.
+    Uses DaVinciResolveScript when available; falls back to noop.
 
-Cost: Wrap every paid API call in a decorator that increments a Prometheus counter. Implement a hard budget limit that kills any job that becomes too expensive.
+- create_python_module: src.run_pipeline
+  description: |
+    CLI entry: python -m src.run_pipeline <video> --mode smart|premium
+    1. analyze_video
+    2. choose_highlights
+    3. emit per-clip SRT
+    4. POST plan to MCP
 
-Performance: Track key metrics like processing_time_vs_source_duration, job success/failure rates, and queue lengths.
 
-Alerting: Set up alerts (e.g., in Grafana/PagerDuty) for when costs spike, error rates exceed a threshold, or processing times degrade.
+⸻
 
-Building this system is a marathon, not a sprint. Follow these principles, implement the phases in order, and you will create a pipeline that is not only intelligent but also robust enough to be relied upon. Good luck.
+6. End-to-end test
+
+- write_file: tests/test_e2e.py
+  content: |
+    import subprocess, pathlib
+    def test_e2e():
+        sample='tests/data/lecture.mp4'
+        assert pathlib.Path(sample).exists()
+        subprocess.run(
+            ['python','-m','src.run_pipeline',sample,'--mode','smart'],
+            check=True)
+
+
+⸻
+
+7. Acceptance gates (CI)
+
+- add_github_actions:
+    workflow_name: ci
+    python_version: "3.11"
+    pre_commands: |
+      sudo apt-get update && sudo apt-get install -y ffmpeg
+      docker compose up -d postgres redis prometheus
+    test_command: pytest -q
+
+
+⸻
+
+8. Success criteria (agent must verify)
+	1.	pytest -q passes (video truly processed).
+	2.	python -m src.run_pipeline sample.mp4 --mode smart prints a valid JSON plan.
+	3.	Prometheus endpoint /metrics exposes proc_ratio and cost_usd_total.
+	4.	No mocks or TODOs remain in source.
+
+⸻
+
+Execution
+
+## 1) Fill .env with real keys then:
+./bootstrap.sh
+pytest -q
+
+
+⸻
+
+End of machine-task spec – executing these tasks yields the fully working, intelligence-enabled pipeline without manual copy-pasting long code blobs.

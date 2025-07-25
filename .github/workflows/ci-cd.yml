@@ -75,10 +75,16 @@ jobs:
       run: |
         export DATABASE_URL=postgresql://postgres:postgres@localhost/test_video_pipeline
         export REDIS_URL=redis://localhost:6379/0
+        export MAX_COST_USD=1.00
+        export HF_HOME=/tmp/huggingface
+        export TRANSFORMERS_CACHE=/tmp/huggingface
         python migrate.py
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost/test_video_pipeline
         REDIS_URL: redis://localhost:6379/0
+        MAX_COST_USD: 1.00
+        HF_HOME: /tmp/huggingface
+        TRANSFORMERS_CACHE: /tmp/huggingface
     
     - name: Run linting
       run: |
@@ -94,6 +100,11 @@ jobs:
         DATABASE_URL: postgresql://postgres:postgres@localhost/test_video_pipeline
         REDIS_URL: redis://localhost:6379/0
         OPENAI_API_KEY: test-key
+        ANTHROPIC_API_KEY: test-key
+        DEEPGRAM_API_KEY: test-key
+        MAX_COST_USD: 1.00
+        HF_HOME: /tmp/huggingface
+        TRANSFORMERS_CACHE: /tmp/huggingface
     
     - name: Run acceptance tests
       run: |
@@ -101,6 +112,9 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost/test_video_pipeline
         REDIS_URL: redis://localhost:6379/0
+        MAX_COST_USD: 1.00
+        HF_HOME: /tmp/huggingface
+        TRANSFORMERS_CACHE: /tmp/huggingface
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

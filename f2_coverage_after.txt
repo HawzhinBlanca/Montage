@@ -1,0 +1,14 @@
+...s                                                                     [100%]/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/coverage/inorout.py:503: CoverageWarning: Module montage.core.analyze_video was never imported. (module-not-imported)
+  self.warn(f"Module {pkg} was never imported.", slug="module-not-imported")
+
+
+---------- coverage: platform darwin, python 3.11.5-final-0 ----------
+Name                               Stmts   Miss Branch BrPart   Cover   Missing
+-------------------------------------------------------------------------------
+montage/core/speaker_diarizer.py      79     32     28      4  53.27%   18-19, 44-46, 51->exit, 55-68, 89-111, 125-132, 136-147, 172->178
+-------------------------------------------------------------------------------
+TOTAL                                 79     32     28      4  53.27%
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_speaker_diarizer.py:60: HF token not set
+3 passed, 1 skipped in 4.69s

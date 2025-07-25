@@ -1,0 +1,5 @@
+montage/utils/video_effects.py:96:                # TODO: Get actual dimensions from video metadata
+montage/utils/video_effects.py.bak:96:                # TODO: Get actual dimensions from video metadata
+montage/cli/run_pipeline.py.bak:753:            # TODO: Implement execute_plan() function
+montage/cli/run_pipeline.py:866:            # TODO: Implement execute_plan() function
+montage/api/celery_app.py:57:    worker_concurrency=2,  # TODO: Add to settings if needed

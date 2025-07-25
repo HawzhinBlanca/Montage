@@ -1,0 +1,15 @@
+{
+  "source_video_path": "tests/assets/minimal.mp4",
+  "clips": [
+    {
+      "start": 0,
+      "end": 5,
+      "filters": "fade=in:st=0:d=0.5"
+    },
+    {
+      "start": 10,
+      "end": 15,
+      "filters": "fade=out:st=14.5:d=0.5"
+    }
+  ]
+}

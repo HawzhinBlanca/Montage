@@ -1,0 +1,69 @@
+2025-07-21 18:12:09,491 | WARNING | root | WARNING: DATABASE_URL contains common weak passwords. Use strong, unique passwords in production.
+2025-07-21 18:12:12,708 | INFO | src.config | ✅ OpenAI API key configured
+2025-07-21 18:12:12,708 | INFO | src.config | ✅ Anthropic API key configured
+2025-07-21 18:12:12,708 | INFO | src.config | ✅ Deepgram API key configured
+2025-07-21 18:12:12,708 | INFO | src.config | ✅ Config loaded - MAX_COST_USD: $5.0
+[32m[18:12:12.740] INFO    [0m src.utils.logging_config | system:main | Logging configured
+[32m[18:12:12.754] INFO    [0m src.core.metrics     | system:main | Metrics manager initialized
+/Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/transformers/utils/hub.py:111: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+[32m[18:12:19.380] INFO    [0m src.core.rate_limiter | system:main | Rate limit manager initialized
+[32m[18:12:19.381] INFO    [0m src.core.rate_limit_config | system:main | Rate limiting configured for development environment
+[32m[18:12:19.381] INFO    [0m src.core.rate_limit_config | system:main | Environment validation passed for development
+[32m[18:12:19.381] INFO    [0m src.core.rate_limit_config | system:main | Total budget: $13.00/minute
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Rate limiter initialized for service: deepgram
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Created rate limiter for service: deepgram
+[32m[18:12:19.381] INFO    [0m src.core.api_wrappers | system:main | Service wrapper initialized for deepgram
+[32m[18:12:19.381] INFO    [0m src.core.api_wrappers | system:main | Deepgram wrapper initialized for development environment
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Rate limiter initialized for service: openai
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Created rate limiter for service: openai
+[32m[18:12:19.381] INFO    [0m src.core.api_wrappers | system:main | Service wrapper initialized for openai
+[32m[18:12:19.381] INFO    [0m src.core.api_wrappers | system:main | OpenAI wrapper initialized for development environment
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Rate limiter initialized for service: anthropic
+[32m[18:12:19.381] INFO    [0m src.core.rate_limiter | system:main | Created rate limiter for service: anthropic
+[32m[18:12:19.381] INFO    [0m src.core.api_wrappers | system:main | Service wrapper initialized for anthropic
+[32m[18:12:19.382] INFO    [0m src.core.api_wrappers | system:main | Anthropic wrapper initialized for development environment
+[32m[18:12:19.382] INFO    [0m src.core.rate_limiter | system:main | Rate limiter initialized for service: gemini
+[32m[18:12:19.382] INFO    [0m src.core.rate_limiter | system:main | Created rate limiter for service: gemini
+[32m[18:12:19.382] INFO    [0m src.core.api_wrappers | system:main | Service wrapper initialized for gemini
+[32m[18:12:19.382] INFO    [0m src.core.api_wrappers | system:main | Gemini wrapper initialized for development environment
+[31m[18:12:19.510] ERROR   [0m src.core.db          | system:main | Failed to initialize database pool: connection to server at "localhost" (::1), port 5432 failed: FATAL:  password authentication failed for user "user"
+
+[33m[18:12:19.510] WARNING [0m src.core.db          | system:main | Continuing without database - caching disabled
+[32m[18:12:19.515] INFO    [0m src.core.checkpoint  | system:main | Redis checkpoint manager initialized
+ 
+ -------------- celery@MBP-M2MAX-2.local v5.3.4 (emerald-rush)
+--- ***** ----- 
+-- ******* ---- macOS-15.5-arm64-arm-64bit 2025-07-21 18:12:19
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         montage:0x109387b90
+- ** ---------- .> transport:   redis://localhost:6379//
+- ** ---------- .> results:     redis://localhost:6379/
+- *** --- * --- .> concurrency: 14 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . montage.cleanup_old_files
+  . montage.process_video
+
+[2025-07-21 18:12:21,600: WARNING/MainProcess] /Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/celery/worker/consumer/consumer.py:507: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-07-21 18:12:21,613: INFO/MainProcess] Connected to redis://localhost:6379//
+[2025-07-21 18:12:21,614: WARNING/MainProcess] /Users/hawzhin/.pyenv/versions/3.11.5/lib/python3.11/site-packages/celery/worker/consumer/consumer.py:507: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-07-21 18:12:21,618: INFO/MainProcess] mingle: searching for neighbors
+[2025-07-21 18:12:22,624: INFO/MainProcess] mingle: all alone
+[2025-07-21 18:12:22,638: INFO/MainProcess] celery@MBP-M2MAX-2.local ready.

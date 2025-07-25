@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.montage.metal-cache-purge</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/hawzhin/Montage/scripts/metal-cache-purge.sh</string>
+    </array>
+    
+    <key>StartInterval</key>
+    <integer>3600</integer> <!-- Run every hour (3600 seconds) -->
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/hawzhin/Library/Logs/metal-cache-purge-stdout.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/hawzhin/Library/Logs/metal-cache-purge-stderr.log</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin</string>
+        <key>MODEL_HOME</key>
+        <string>/Users/hawzhin/.cache</string>
+    </dict>
+</dict>
+</plist>
